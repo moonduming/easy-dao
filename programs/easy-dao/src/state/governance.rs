@@ -1,19 +1,10 @@
+//! 创建管理目标账户
+
 use anchor_lang::prelude::*;
 
-use super::GovernanceAccountType;
+use super::{GovernanceAccountType, VoteThreshold};
 use crate::error::GovernanceError;
 
-
-#[derive(AnchorSerialize, AnchorDeserialize, Debug, Clone)]
-/// 投票通过门槛枚举
-pub enum VoteThreshold {
-    /// 赞成票达到指定百分比即通过（如 YesVotePercentage(60)）
-    YesVotePercentage(u8),
-    /// 参与票数达到指定百分比才有效（如 QuorumPercentage(40)）
-    QuorumPercentage(u8),
-    /// 禁用投票（特殊场景用）
-    Disabled,
-}
 
 #[derive(AnchorSerialize, AnchorDeserialize, Debug, Clone)]
 /// 投票提前通过机制
@@ -97,6 +88,19 @@ impl Governance {
         }
 
         Ok(())
+    }
+
+    pub fn resolve_vote_threshold(&self) -> Result<()> {
+        if self.config.community_vote_threshold == VoteThreshold::Disabled {
+            return err!(GovernanceError::GoverningTokenMintNotAllowedToVote)
+        }
+
+        Ok(())
+    }
+
+    pub fn get_proposal_deposit_amount(&self) -> u64 {
+        self.active_proposal_count
+            .saturating_mul(Self::SECURITY_DEPOSIT_BASE_LAMPORTS)
     }
 
 }

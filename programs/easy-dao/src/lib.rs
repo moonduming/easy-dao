@@ -48,5 +48,15 @@ pub mod easy_dao {
     ) -> Result<()> {
         ctx.accounts.process(ctx.bumps.governance, governance_config)
     }
+
+    pub fn create_proposal(
+        ctx: Context<CreateProposal>,
+        name: String, 
+        description_link: String,
+        voting_duration: u64,
+        vote_threshold: VoteThreshold
+    ) -> Result<()> {
+        ctx.accounts.process(name, description_link, voting_duration, vote_threshold)
+    }
 }
 

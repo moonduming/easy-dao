@@ -16,8 +16,6 @@ pub enum MintMaxVoterWeightSource {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct RealmConfig {
-    /// 预留字段，用于未来扩展
-    pub reserved: [u8; 6],
     /// 创建治理实例所需的最小社区代币权重
     pub min_community_weight_to_create_governance: u64,
     /// 社区代币最大投票权来源配置（如：按总供应量比例，或绝对值）
@@ -38,8 +36,6 @@ pub struct Realm {
     pub community_token_account: Pubkey,
     /// Realm 的配置（含最大票权、最小治理权等参数）
     pub config: RealmConfig,
-    /// 预留空间，便于未来升级
-    pub reserved: [u8; 128],
     /// DAO 当前的治理权拥有者
     pub authority: Pubkey,
 }
@@ -52,8 +48,7 @@ impl Realm {
     /// 32  : community_mint 公钥（Pubkey）
     /// 32  : community_token 公钥（Pubkey）
     /// RealmConfig : 子配置结构体大小
-    /// 128 : reserved 字段（预留空间）
     /// 33  : authority 可选公钥（Option<Pubkey>，1字节 tag + 32字节 pubkey）
-    pub const LEN: usize = 8 + 4 + 32 + 1 + 32 + 32 + 23 + 128 + 33;
+    pub const LEN: usize = 8 + 4 + 32 + 1 + 32 + 32 + 17 + 33;
     pub const REALM_SEEDS: &'static [u8] = b"realm";
 }

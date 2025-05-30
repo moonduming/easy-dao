@@ -127,7 +127,6 @@ describe("easy-dao", () => {
   it("Is initialized!", async () => {
     // (1) RealmConfig —— 只用社区代币，reserved 占位 0 即可
     const realmConfig = {
-      reserved: [0, 0, 0, 0, 0, 0],                      // u8[6]
       minCommunityWeightToCreateGovernance: new anchor.BN(1), // 至少 1 枚代币就能提案
       communityMintMaxVoterWeightSource: {                   // 不做上限限制
         absolute: new anchor.BN(0),                          // 0 = “无限制”
@@ -136,10 +135,7 @@ describe("easy-dao", () => {
 
     // (2) GoverningTokenConfig —— 不用插件、固定 5 个空位的锁权限人
     const governingTokenConfig = {
-      voterWeightAddin: null,     // 不用加权插件
-      maxVoterWeightAddin: null,  // 不用最大权插件
       tokenType: { liquid: {} },  // 流动型代币
-      reserved: [0, 0, 0, 0],     // u8[4]
       lockAuthorities: []         // 默认为 0,
     } as any;
 

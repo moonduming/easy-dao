@@ -1,3 +1,5 @@
+//! 管理目标账户创建指令
+
 use anchor_lang::prelude::*;
 
 use crate::{error::GovernanceError, Governance, GovernanceAccountType, GovernanceConfig, Realm};
@@ -7,8 +9,6 @@ use crate::{error::GovernanceError, Governance, GovernanceAccountType, Governanc
 pub struct CreateGovernance<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
-
-    /// CHECK: 无需做类型校验
     pub authority: Signer<'info>,
 
     #[account(

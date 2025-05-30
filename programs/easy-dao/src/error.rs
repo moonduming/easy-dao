@@ -19,8 +19,8 @@ pub enum GovernanceError {
     #[msg("存入的治理代币数量必须大于零")]
     InvalidDepositAmount,
 
-    #[msg("治理代币数量溢出")]
-    DepositAmountOverflow,
+    #[msg("数值溢出")]
+    Overflow,
 
     #[msg("治理配置中的投票门槛百分比超出范围")]
     InvalidVoteThresholdPercentage,
@@ -33,4 +33,21 @@ pub enum GovernanceError {
 
     #[msg("无权限，必须是 Realm 管理员")]
     UnauthorizedRealmAuthority,
+
+    #[msg("此类型的治理代币不允许用于投票")]
+    GoverningTokenMintNotAllowedToVote,
+
+    #[msg("TokenOwnerRecord 所属 Realm 与当前 Realm 不一致")]
+    InvalidTokenOwnerRecordRealm,
+
+    #[msg("用户持有的治理代币不足，无法创建提案")]
+    InsufficientVotingPower,
+    #[msg("投票持续时间必须大于 0")]
+    InvalidVotingDuration,
+
+    #[msg("提案标题过长，最多 50 字节")]
+    NameTooLong,
+
+    #[msg("描述链接过长，最多 255 字节")]
+    LinkTooLong,
 }

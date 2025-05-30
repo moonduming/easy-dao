@@ -79,7 +79,6 @@ impl<'info> CreateRealm<'info> {
         realm.community_mint = self.mint.key();
         realm.community_token_account = self.community_token_account.key();
         realm.authority = self.authority.key();
-        realm.reserved = [0; 128];
 
         Ok(())
     }

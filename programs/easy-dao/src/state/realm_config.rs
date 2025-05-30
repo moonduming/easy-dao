@@ -46,14 +46,8 @@ impl Default for GoverningTokenType {
 /// 治理代币的配置，用于扩展代币的投票行为与治理规则
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub struct GoverningTokenConfig {
-    /// 可选的投票权插件地址
-    pub voter_weight_addin: Option<Pubkey>,
-    /// 可选的最大投票权插件地址
-    pub max_voter_weight_addin: Option<Pubkey>,
     /// 代币的类型
     pub token_type: GoverningTokenType,
-    /// 保留字段，用于未来扩展
-    pub reserved: [u8; 4],
     /// 有权锁定该代币功能的权限地址列表
     pub lock_authorities: Vec<Pubkey>
 }
@@ -77,10 +71,10 @@ impl RealmConfigAccount {
     /// 1: 账户类型 (u8)
     /// 32: Realm 公钥 (Pubkey)
     /// 110: 保留字段 (Reserved110, 64+32+14)
-    /// 75: 社区代币配置 GoverningTokenConfig 的固定部分（不包含 lock_authorities 动态长度）
+    /// 5: 社区代币配置 GoverningTokenConfig 的固定部分（不包含 lock_authorities 动态长度）
     /// 32*5: 最多可存 5 个权限管理者 (每个 Pubkey 32 字节)
     /// 总计可支持 5 个 lock_authorities 成员
-    pub const LEN: usize = 8 + 1 + 32 + 110 + 75 + 32 * 5;
+    pub const LEN: usize = 8 + 1 + 32 + 110 + 5 + 32 * 5;
     pub const MAX_LOCK_AUTHORITIES: usize = 5;
     pub const REALM_CONFIG_SEEDS: &'static [u8] = b"realm_config";
     pub const COMMUNITY_TOKEN_SEEDS: &'static [u8] = b"community_token";
