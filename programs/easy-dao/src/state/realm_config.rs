@@ -55,7 +55,7 @@ pub struct GoverningTokenConfig {
     /// 保留字段，用于未来扩展
     pub reserved: [u8; 4],
     /// 有权锁定该代币功能的权限地址列表
-    pub lock_authorities: [Pubkey; 5]
+    pub lock_authorities: Vec<Pubkey>
 }
 
 /// Realm配置账户，用于存储社区与委员会治理代币的配置
@@ -77,10 +77,11 @@ impl RealmConfigAccount {
     /// 1: 账户类型 (u8)
     /// 32: Realm 公钥 (Pubkey)
     /// 110: 保留字段 (Reserved110, 64+32+14)
-    /// 74: 社区代币配置 GoverningTokenConfig 的固定部分
+    /// 75: 社区代币配置 GoverningTokenConfig 的固定部分（不包含 lock_authorities 动态长度）
     /// 32*5: 最多可存 5 个权限管理者 (每个 Pubkey 32 字节)
     /// 总计可支持 5 个 lock_authorities 成员
-    pub const LEN: usize = 8 + 1 + 32 + 110 + 71 + 32 * 5;
+    pub const LEN: usize = 8 + 1 + 32 + 110 + 75 + 32 * 5;
+    pub const MAX_LOCK_AUTHORITIES: usize = 5;
     pub const REALM_CONFIG_SEEDS: &'static [u8] = b"realm_config";
     pub const COMMUNITY_TOKEN_SEEDS: &'static [u8] = b"community_token";
 }

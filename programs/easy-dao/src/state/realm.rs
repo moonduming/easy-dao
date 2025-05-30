@@ -1,3 +1,5 @@
+//! 治理账户
+
 use anchor_lang::prelude::*;
 
 use super::GovernanceAccountType;
@@ -25,18 +27,21 @@ pub struct RealmConfig {
 
 #[account]
 pub struct Realm {
+    pub id: u64,
     /// DAO 名称（最长 32 字节）
     pub name: String,
     /// 账户类型标识，用于区分不同类型的治理账户
     pub account_type: GovernanceAccountType,
     /// 社区治理代币的 Mint 公钥地址
     pub community_mint: Pubkey,
+    /// 社区治理代币账户 公钥地址
+    pub community_token_account: Pubkey,
     /// Realm 的配置（含最大票权、最小治理权等参数）
     pub config: RealmConfig,
     /// 预留空间，便于未来升级
     pub reserved: [u8; 128],
-    /// DAO 当前的治理权拥有者（可选）
-    pub authority: Option<Pubkey>,
+    /// DAO 当前的治理权拥有者
+    pub authority: Pubkey,
 }
 
 impl Realm {
@@ -45,9 +50,10 @@ impl Realm {
     /// 4+32: name 字符串（4字节长度 + 最多32字节内容）
     /// 1   : account_type 枚举（u8）
     /// 32  : community_mint 公钥（Pubkey）
+    /// 32  : community_token 公钥（Pubkey）
     /// RealmConfig : 子配置结构体大小
     /// 128 : reserved 字段（预留空间）
     /// 33  : authority 可选公钥（Option<Pubkey>，1字节 tag + 32字节 pubkey）
-    pub const LEN: usize = 8 + 4 + 32 + 1 + 32 + 23 + 128 + 33;
+    pub const LEN: usize = 8 + 4 + 32 + 1 + 32 + 32 + 23 + 128 + 33;
     pub const REALM_SEEDS: &'static [u8] = b"realm";
 }

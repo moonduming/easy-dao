@@ -2,9 +2,13 @@ use anchor_lang::prelude::*;
 
 pub mod realm_config;
 pub mod realm;
+pub mod token_owner_record;
+pub mod governance;
 
 pub use realm_config::*;
 pub use realm::*;
+pub use token_owner_record::*;
+pub use governance::*;
 
 
 
@@ -35,6 +39,6 @@ pub enum GovernanceAccountType {
     /// 提案交易账户，包含单个交易中执行提案的指令，V2替代ProposalInstruction并增加了提案选项索引和多条指令支持
     ProposalTransaction,
 
-    /// Realm配置账户（V2引入）
+    /// Realm配置账户
     RealmConfig,
 }

@@ -1,3 +1,5 @@
+//! 初始化治理领域
+
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
@@ -8,14 +10,13 @@ use crate::state::{GovernanceAccountType, GoverningTokenConfig, Realm, RealmConf
 #[instruction(id: u64)]
 pub struct CreateRealm<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
     pub authority: Signer<'info>,
 
     pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
         init,
-        payer = payer,
+        payer = authority,
         space = RealmConfigAccount::LEN,
         seeds = [
             id.to_le_bytes().as_ref(), 
@@ -27,11 +28,10 @@ pub struct CreateRealm<'info> {
 
     #[account(
         init,
-        payer = payer,
+        payer = authority,
         space = Realm::LEN,
         seeds = [
             id.to_le_bytes().as_ref(),
-            realm_config_account.key().as_ref(),
             Realm::REALM_SEEDS
         ],
         bump
@@ -40,9 +40,8 @@ pub struct CreateRealm<'info> {
 
     #[account(
         init,
-        payer = payer,
+        payer = authority,
         seeds = [
-            id.to_le_bytes().as_ref(),
             mint.key().as_ref(),
             realm.key().as_ref(),
             RealmConfigAccount::COMMUNITY_TOKEN_SEEDS
@@ -61,6 +60,7 @@ pub struct CreateRealm<'info> {
 impl<'info> CreateRealm<'info> {
     pub fn process(
         &mut self,
+        id: u64,
         name: String,
         realm_config: RealmConfig,
         governing_token_config: GoverningTokenConfig
@@ -72,11 +72,13 @@ impl<'info> CreateRealm<'info> {
         realm_config_account.reserved = Reserved110::default();
 
         let realm = &mut self.realm;
+        realm.id = id;
         realm.name = name;
         realm.account_type = GovernanceAccountType::Realm;
         realm.config = realm_config;
-        realm.community_mint = self.community_token_account.key();
-        realm.authority = Some(self.authority.key());
+        realm.community_mint = self.mint.key();
+        realm.community_token_account = self.community_token_account.key();
+        realm.authority = self.authority.key();
         realm.reserved = [0; 128];
 
         Ok(())

@@ -5,3 +5,5 @@ target
 node_modules
 test-ledger
 .yarn
+tests/addresses.json
+tests/user_secret.json
