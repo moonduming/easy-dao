@@ -97,18 +97,15 @@ impl<'info> CreateProposal<'info> {
 
         let current_ts = Clock::get()?.unix_timestamp as u64;
 
-        let token_owner_record = &mut self.token_owner_record;
-        let new_outstanding_proposal_coun = token_owner_record
+        self.token_owner_record.outstanding_proposal_count = self.token_owner_record
                 .outstanding_proposal_count
                 .checked_add(1)
                 .ok_or(error!(GovernanceError::Overflow))?;
-        token_owner_record.outstanding_proposal_count = new_outstanding_proposal_coun;
 
-        let governance = &mut self.governance;
-        let new_active_proposal_count = governance.active_proposal_count
+        self.governance.active_proposal_count =  self.governance
+            .active_proposal_count
             .checked_add(1)
             .ok_or(error!(GovernanceError::Overflow))?;
-        governance.active_proposal_count = new_active_proposal_count;
 
         let proposal = &mut self.proposal;
         proposal.account_type = GovernanceAccountType::Proposal;

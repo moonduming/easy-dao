@@ -6,6 +6,7 @@ pub mod token_owner_record;
 pub mod governance;
 pub mod proposal;
 pub mod proposal_deposit;
+pub mod required_signatory;
 
 pub use realm_config::*;
 pub use realm::*;
@@ -13,7 +14,7 @@ pub use token_owner_record::*;
 pub use governance::*;
 pub use proposal::*;
 pub use proposal_deposit::*;
-
+pub use required_signatory::*;
 
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
@@ -36,6 +37,9 @@ pub enum GovernanceAccountType {
 
     /// 提案押金账户
     ProposalDeposit,
+
+    /// 必须签名者账户
+    RequiredSignatory,
 
     /// 提案签署者账户
     SignatoryRecord,

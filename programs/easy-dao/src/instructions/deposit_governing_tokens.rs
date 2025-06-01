@@ -91,12 +91,10 @@ impl<'info> DepositGoverningTokens<'info> {
         )?;
 
         // 变更用户治理账户
-        let token_owner_record = &mut self.token_owner_record;
-        let new_amount = token_owner_record
+        self.token_owner_record.governing_token_deposit_amount = self.token_owner_record
             .governing_token_deposit_amount
             .checked_add(amount)
             .ok_or(error!(GovernanceError::Overflow))?;
-        token_owner_record.governing_token_deposit_amount = new_amount;
 
         Ok(())
     }

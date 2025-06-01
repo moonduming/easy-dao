@@ -27,6 +27,10 @@ pub struct Proposal {
     pub governance: Pubkey,
     /// 提案发起人的 TokenOwnerRecord
     pub token_owner_record: Pubkey,
+    /// 需签署审核人数
+    pub signatories_count: u8,
+    /// 已签署通过人数
+    pub signatories_signed_off_count: u8,
     /// 当前提案状态
     pub state: ProposalState,
     /// YES 赞成票权重总和

@@ -58,5 +58,17 @@ pub mod easy_dao {
     ) -> Result<()> {
         ctx.accounts.process(name, description_link, voting_duration, vote_threshold)
     }
+
+    pub fn create_required_signatory(
+        ctx: Context<CreateRequiredSignatory>
+    ) -> Result<()> {
+        ctx.accounts.process()
+    }
+
+    pub fn remove_required_signatory(
+        ctx: Context<RemoveRequiredSignatory>
+    ) -> Result<()> {
+        ctx.accounts.process()
+    }
 }
 

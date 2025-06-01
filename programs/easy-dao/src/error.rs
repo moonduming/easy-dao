@@ -40,8 +40,12 @@ pub enum GovernanceError {
     #[msg("TokenOwnerRecord 所属 Realm 与当前 Realm 不一致")]
     InvalidTokenOwnerRecordRealm,
 
+    #[msg("Governance 账户的 realm 与传入的 realm 不匹配")]
+    InvalidGovernanceRealm,
+
     #[msg("用户持有的治理代币不足，无法创建提案")]
     InsufficientVotingPower,
+    
     #[msg("投票持续时间必须大于 0")]
     InvalidVotingDuration,
 
