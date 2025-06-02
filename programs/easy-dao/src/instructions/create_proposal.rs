@@ -37,8 +37,7 @@ pub struct CreateProposal<'info> {
             authority.key().as_ref(),
         ],
         bump,
-        constraint = token_owner_record.realm == realm.key()
-            @ GovernanceError::InvalidTokenOwnerRecordRealm,
+        has_one = realm @ GovernanceError::InvalidTokenOwnerRecordRealm,
         constraint = token_owner_record.governing_token_owner == authority.key() 
             @ GovernanceError::InvalidTokenOwnerRecordOwner
     )]

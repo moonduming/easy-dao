@@ -10,15 +10,13 @@ pub struct RemoveRequiredSignatory<'info> {
     pub signatory: SystemAccount<'info>,
 
     #[account(
-        constraint = realm.authority == authority.key() 
-            @ GovernanceError::UnauthorizedRealmAuthority
+        has_one = authority @ GovernanceError::UnauthorizedRealmAuthority
     )]
     pub realm: Box<Account<'info, Realm>>,
 
     #[account(
         mut,
-        constraint = governance.realm == realm.key()
-            @ GovernanceError::InvalidGovernanceRealm
+        has_one = realm @ GovernanceError::InvalidGovernanceRealm
     )]
     pub governance: Box<Account<'info, Governance>>,
 

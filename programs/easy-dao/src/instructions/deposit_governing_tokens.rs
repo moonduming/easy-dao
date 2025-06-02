@@ -27,12 +27,6 @@ pub struct DepositGoverningTokens<'info> {
     pub mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
-        constraint = realm_config_account.realm == realm.key() 
-            @ GovernanceError::InvalidRealmConfigAccount
-    )]
-    pub realm_config_account: Box<Account<'info, RealmConfigAccount>>,
-
-    #[account(
         mut,
         seeds = [
             mint.key().as_ref(),

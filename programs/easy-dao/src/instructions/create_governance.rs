@@ -12,8 +12,7 @@ pub struct CreateGovernance<'info> {
     pub authority: Signer<'info>,
 
     #[account(
-        constraint = realm.authority == authority.key() 
-            @ GovernanceError::UnauthorizedRealmAuthority
+        has_one = authority @ GovernanceError::UnauthorizedRealmAuthority
     )]
     pub realm: Box<Account<'info, Realm>>,
 

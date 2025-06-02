@@ -70,5 +70,11 @@ pub mod easy_dao {
     ) -> Result<()> {
         ctx.accounts.process()
     }
+
+    pub fn add_signatory<'info>(
+        ctx: Context<'_, '_, 'info, 'info, AddSignatory<'info>>
+    ) -> Result<()> {
+        process_add_signatory(ctx)
+    }
 }
 

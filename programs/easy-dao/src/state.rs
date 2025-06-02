@@ -7,6 +7,7 @@ pub mod governance;
 pub mod proposal;
 pub mod proposal_deposit;
 pub mod required_signatory;
+pub mod signatory_record;
 
 pub use realm_config::*;
 pub use realm::*;
@@ -15,6 +16,7 @@ pub use governance::*;
 pub use proposal::*;
 pub use proposal_deposit::*;
 pub use required_signatory::*;
+pub use signatory_record::*;
 
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
