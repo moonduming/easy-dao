@@ -13,13 +13,13 @@ pub struct CreateRequiredSignatory<'info> {
     #[account(
         has_one = authority @ GovernanceError::UnauthorizedRealmAuthority
     )]
-    pub realm: Box<Account<'info, Realm>>,
+    pub realm: Account<'info, Realm>,
 
     #[account(
         mut,
         has_one = realm @ GovernanceError::InvalidGovernanceRealm
     )]
-    pub governance: Box<Account<'info, Governance>>,
+    pub governance: Account<'info, Governance>,
 
     #[account(
         init,
@@ -32,7 +32,7 @@ pub struct CreateRequiredSignatory<'info> {
         ],
         bump
     )]
-    pub required_signatory: Box<Account<'info, RequiredSignatory>>,
+    pub required_signatory: Account<'info, RequiredSignatory>,
 
     pub system_program: Program<'info, System>
 }

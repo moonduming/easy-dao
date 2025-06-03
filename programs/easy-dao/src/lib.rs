@@ -71,10 +71,10 @@ pub mod easy_dao {
         ctx.accounts.process()
     }
 
-    pub fn add_signatory<'info>(
-        ctx: Context<'_, '_, 'info, 'info, AddSignatory<'info>>
+    pub fn add_signatory(
+        ctx: Context<AddSignatory>
     ) -> Result<()> {
-        process_add_signatory(ctx)
+        ctx.accounts.process()
     }
 }
 

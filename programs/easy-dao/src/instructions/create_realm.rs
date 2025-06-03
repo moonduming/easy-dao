@@ -12,7 +12,7 @@ pub struct CreateRealm<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    pub mint: Box<InterfaceAccount<'info, Mint>>,
+    pub mint: InterfaceAccount<'info, Mint>,
 
     #[account(
         init,
@@ -24,7 +24,7 @@ pub struct CreateRealm<'info> {
         ],
         bump
     )]
-    pub realm_config_account: Box<Account<'info, RealmConfigAccount>>,
+    pub realm_config_account: Account<'info, RealmConfigAccount>,
 
     #[account(
         init,
@@ -36,7 +36,7 @@ pub struct CreateRealm<'info> {
         ],
         bump
     )]
-    pub realm: Box<Account<'info, Realm>>,
+    pub realm: Account<'info, Realm>,
 
     #[account(
         init,
@@ -50,7 +50,7 @@ pub struct CreateRealm<'info> {
         token::mint = mint,
         token::authority = realm
     )]
-    pub community_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub community_token_account: InterfaceAccount<'info, TokenAccount>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>

@@ -1,7 +1,14 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    error::GovernanceError, Governance, GovernanceAccountType, Proposal, RequiredSignatory, SignatoryRecord, TokenOwnerRecord
+    error::GovernanceError, 
+    Governance, 
+    GovernanceAccountType, 
+    Proposal, 
+    RequiredSignatory, 
+    SignatoryRecord, 
+    TokenOwnerRecord, 
+    Realm
 };
 
 
@@ -12,7 +19,12 @@ pub struct AddSignatory<'info> {
     pub authority: Signer<'info>,
     pub signatory: SystemAccount<'info>,
 
-    pub governance: Box<Account<'info, Governance>>,
+    pub realm: Account<'info, Realm>,
+
+    #[account(
+        has_one = realm @ GovernanceError::InvalidGovernanceRealm
+    )]
+    pub governance: Account<'info, Governance>,
 
     #[account(
         mut,
@@ -20,7 +32,7 @@ pub struct AddSignatory<'info> {
         constraint = proposal.token_owner_record == authority.key() 
             @ GovernanceError::InvalidProposalTokenOwnerRecord
     )]
-    pub proposal: Box<Account<'info, Proposal>>,
+    pub proposal: Account<'info, Proposal>,
 
     #[account(
         init,
@@ -33,50 +45,47 @@ pub struct AddSignatory<'info> {
         ],
         bump
     )]
-    pub signatory_record: Box<Account<'info, SignatoryRecord>>,
+    pub signatory_record: Account<'info, SignatoryRecord>,
+
+    #[account(
+        has_one = governance @ GovernanceError::InvalidRequiredGovernance,
+        has_one = signatory @ GovernanceError::InvalidRequiredSignatory,
+    )]
+    pub required_signatory: Option<Account<'info, RequiredSignatory>>,
+
+    #[account(
+        constraint = token_owner_record.governing_token_owner == authority.key() 
+            @ GovernanceError::InvalidProposalTokenOwnerRecord
+    )]
+    pub token_owner_record: Option<Account<'info, TokenOwnerRecord>>,
 
     pub system_program: Program<'info, System>
 }
 
 
-pub fn process_add_signatory<'info>(ctx: Context<'_, '_, 'info, 'info, AddSignatory<'info>>) -> Result<()> {
-    let proposal = &mut ctx.accounts.proposal;
-    let governance = &ctx.accounts.governance;
+impl<'info> AddSignatory<'info> {
+    pub fn process(&mut self) -> Result<()> {
+        if self.proposal.signatories_count < self.governance.required_signatories_count {
+            let _required_info = self.required_signatory
+                .as_deref()
+                .ok_or(GovernanceError::MissingRequiredSignatory)?;
+        } else {
+            let _token_owner_record = self.token_owner_record
+                .as_deref()
+                .ok_or(GovernanceError::MissingRequiredSignatory)?;
+        }
 
-    if proposal.signatories_count < governance.required_signatories_count {
-        let required_info = ctx.remaining_accounts
-            .get(0)
-            .ok_or(GovernanceError::MissingRequiredSignatory)?;
-        let required: Account<'info, RequiredSignatory> = Account::try_from(required_info)?;
+        self.proposal.signatories_count = self.proposal.signatories_count
+            .checked_add(1)
+            .ok_or(GovernanceError::Overflow)?;
         
-        if required.governance != governance.key() {
-            return err!(GovernanceError::InvalidProposalGovernance);
-        }
-        if required.signatory != ctx.accounts.signatory.key() {
-            return err!(GovernanceError::InvalidRequiredSignatory);
-        }
-    } else {
-        let required_info = ctx.remaining_accounts
-            .get(0)
-            .ok_or(GovernanceError::MissingRequiredSignatory)?;
-        let required: Account<'info, TokenOwnerRecord> = Account::try_from(required_info)?;
-        
-        if required.governing_token_owner != ctx.accounts.authority.key() {
-            return err!(GovernanceError::InvalidProposalTokenOwnerRecord);
-        }
+        let signatory_record = &mut self.signatory_record;
+
+        signatory_record.account_type = GovernanceAccountType::SignatoryRecord;
+        signatory_record.proposal = self.proposal.key();
+        signatory_record.signatory = self.signatory.key();
+        signatory_record.signed_off = false;
+
+        Ok(())
     }
-
-    proposal.signatories_count = proposal.signatories_count
-        .checked_add(1)
-        .ok_or(GovernanceError::Overflow)?;
-    
-    let signatory_record = &mut ctx.accounts.signatory_record;
-
-    signatory_record.account_type = GovernanceAccountType::SignatoryRecord;
-    signatory_record.proposal = proposal.key();
-    signatory_record.signatory = ctx.accounts.signatory.key();
-    signatory_record.signed_off = false;
-
-    Ok(())
 }
-

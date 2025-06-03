@@ -7,6 +7,8 @@ use super::{GovernanceAccountType, VoteThreshold};
 pub enum ProposalState {
     /// 草稿阶段，尚未开始投票
     Draft,
+    /// 签署中：第一个签署人签署后进入该状态，所有人签署完后离开该状态
+    SigningOff,
     /// 投票进行中
     Voting,
     /// 达到通过门槛
@@ -31,6 +33,8 @@ pub struct Proposal {
     pub signatories_count: u8,
     /// 已签署通过人数
     pub signatories_signed_off_count: u8,
+    /// 签署通过时间
+    pub signing_off_at: Option<u64>,
     /// 当前提案状态
     pub state: ProposalState,
     /// YES 赞成票权重总和

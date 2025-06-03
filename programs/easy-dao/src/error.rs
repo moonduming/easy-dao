@@ -43,6 +43,9 @@ pub enum GovernanceError {
     #[msg("Governance 账户的 realm 与传入的 realm 不匹配")]
     InvalidGovernanceRealm,
 
+    #[msg("必要签名账户不属于治理账户")]
+    InvalidRequiredGovernance,
+
     #[msg("Proposal 的 governance 字段与传入的 governance 不一致")]
     InvalidProposalGovernance,
 
@@ -51,6 +54,9 @@ pub enum GovernanceError {
 
     #[msg("必要签名账户与传入的不一致")]
     InvalidRequiredSignatory,
+
+    #[msg("提案已被签署")]
+    ProposalAlreadySignedOff,
 
     #[msg("缺少 RequiredSignatory 账户")]
     MissingRequiredSignatory,

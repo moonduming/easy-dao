@@ -14,7 +14,7 @@ pub struct CreateGovernance<'info> {
     #[account(
         has_one = authority @ GovernanceError::UnauthorizedRealmAuthority
     )]
-    pub realm: Box<Account<'info, Realm>>,
+    pub realm: Account<'info, Realm>,
 
     #[account(
         init,
@@ -26,7 +26,7 @@ pub struct CreateGovernance<'info> {
         ],
         bump
     )]
-    pub governance: Box<Account<'info, Governance>>,
+    pub governance: Account<'info, Governance>,
 
     pub system_program: Program<'info, System>
 }

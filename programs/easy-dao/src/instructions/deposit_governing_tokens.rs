@@ -19,12 +19,12 @@ use crate::{error::GovernanceError, Realm, RealmConfigAccount, TokenOwnerRecord}
 pub struct DepositGoverningTokens<'info> {
     pub user: Signer<'info>,
 
-    pub realm: Box<Account<'info, Realm>>,
+    pub realm: Account<'info, Realm>,
 
     #[account(
         address = realm.community_mint
     )]
-    pub mint: Box<InterfaceAccount<'info, Mint>>,
+    pub mint: InterfaceAccount<'info, Mint>,
 
     #[account(
         mut,
@@ -37,14 +37,14 @@ pub struct DepositGoverningTokens<'info> {
         token::mint = mint,
         token::authority = realm
     )]
-    pub community_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub community_token_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         mut,
         associated_token::mint = mint,
         associated_token::authority = user
     )]
-    pub user_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+    pub user_token_account: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         mut,
@@ -58,7 +58,7 @@ pub struct DepositGoverningTokens<'info> {
         constraint = token_owner_record.governing_token_owner == user.key() 
             @ GovernanceError::InvalidTokenOwnerRecordOwner
     )]
-    pub token_owner_record: Box<Account<'info, TokenOwnerRecord>>,
+    pub token_owner_record: Account<'info, TokenOwnerRecord>,
 
     pub system_program: Program<'info, System>,
     pub token_program: Interface<'info, TokenInterface>,

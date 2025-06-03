@@ -12,12 +12,12 @@ pub struct CreateProposal<'info> {
     pub payer: Signer<'info>,
     pub authority: Signer<'info>,
 
-    pub realm: Box<Account<'info, Realm>>,
+    pub realm: Account<'info, Realm>,
 
     #[account(
         address = realm.community_mint
     )]
-    pub mint: Box<InterfaceAccount<'info, Mint>>,
+    pub mint: InterfaceAccount<'info, Mint>,
 
     #[account(
         seeds = [
@@ -26,7 +26,7 @@ pub struct CreateProposal<'info> {
         ],
         bump
     )]
-    pub governance: Box<Account<'info, Governance>>,
+    pub governance: Account<'info, Governance>,
 
     #[account(
         mut,
@@ -41,7 +41,7 @@ pub struct CreateProposal<'info> {
         constraint = token_owner_record.governing_token_owner == authority.key() 
             @ GovernanceError::InvalidTokenOwnerRecordOwner
     )]
-    pub token_owner_record: Box<Account<'info, TokenOwnerRecord>>,
+    pub token_owner_record: Account<'info, TokenOwnerRecord>,
 
     #[account(
         init,
@@ -54,7 +54,7 @@ pub struct CreateProposal<'info> {
         ],
         bump
     )]
-    pub proposal: Box<Account<'info, Proposal>>,
+    pub proposal: Account<'info, Proposal>,
 
     #[account(
         init,
@@ -67,7 +67,7 @@ pub struct CreateProposal<'info> {
         ],
         bump
     )]
-    pub proposal_deposit: Box<Account<'info, ProposalDeposit>>,
+    pub proposal_deposit: Account<'info, ProposalDeposit>,
 
     pub system_program: Program<'info, System>
 }

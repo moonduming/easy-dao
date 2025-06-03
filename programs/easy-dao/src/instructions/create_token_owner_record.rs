@@ -16,13 +16,13 @@ pub struct CreateTokenOwnerRecord<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
-    pub mint: Box<InterfaceAccount<'info, Mint>>,
+    pub mint: InterfaceAccount<'info, Mint>,
 
     #[account(
         constraint = realm.community_mint == mint.key() 
             @ GovernanceError::InvalidCommunityMint
     )]
-    pub realm: Box<Account<'info, Realm>>,
+    pub realm: Account<'info, Realm>,
 
     #[account(
         init,
@@ -36,7 +36,7 @@ pub struct CreateTokenOwnerRecord<'info> {
         ],
         bump
     )]
-    pub token_owner_record: Box<Account<'info, TokenOwnerRecord>>,
+    pub token_owner_record: Account<'info, TokenOwnerRecord>,
 
     pub system_program: Program<'info, System>
 }

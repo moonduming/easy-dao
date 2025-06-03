@@ -12,13 +12,13 @@ pub struct RemoveRequiredSignatory<'info> {
     #[account(
         has_one = authority @ GovernanceError::UnauthorizedRealmAuthority
     )]
-    pub realm: Box<Account<'info, Realm>>,
+    pub realm: Account<'info, Realm>,
 
     #[account(
         mut,
         has_one = realm @ GovernanceError::InvalidGovernanceRealm
     )]
-    pub governance: Box<Account<'info, Governance>>,
+    pub governance: Account<'info, Governance>,
 
     #[account(
         mut,
