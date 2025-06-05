@@ -7,10 +7,15 @@ use super::GovernanceAccountType;
 
 #[derive(AnchorDeserialize, AnchorSerialize, Debug, Clone)]
 pub enum MintMaxVoterWeightSource {
-    /// 按总供应量的一定比例来限制最大投票权（参数为分子，分母为 10_000）
+    /// 按总供应量的一定比例来限制最大投票权（参数为分子，分母为 10_000_000）
     SupplyFraction(u64),
     /// 固定的最大投票权值
     Absolute(u64)
+}
+
+
+impl MintMaxVoterWeightSource {
+    pub const SUPPLY_FRACTION_BASE: u64 = 10_000_000;
 }
 
 

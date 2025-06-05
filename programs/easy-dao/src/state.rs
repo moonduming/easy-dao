@@ -8,6 +8,7 @@ pub mod proposal;
 pub mod proposal_deposit;
 pub mod required_signatory;
 pub mod signatory_record;
+pub mod vote_record;
 
 pub use realm_config::*;
 pub use realm::*;
@@ -17,7 +18,7 @@ pub use proposal::*;
 pub use proposal_deposit::*;
 pub use required_signatory::*;
 pub use signatory_record::*;
-
+pub use vote_record::*;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub enum GovernanceAccountType {
@@ -61,8 +62,6 @@ pub enum GovernanceAccountType {
 pub enum VoteThreshold {
     /// 赞成票达到指定百分比即通过（如 YesVotePercentage(60)）
     YesVotePercentage(u8),
-    /// 参与票数达到指定百分比才有效（如 QuorumPercentage(40)）
-    QuorumPercentage(u8),
     /// 禁用投票（特殊场景用）
     Disabled,
 }

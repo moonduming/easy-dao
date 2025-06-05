@@ -53,10 +53,8 @@ pub mod easy_dao {
         ctx: Context<CreateProposal>,
         name: String, 
         description_link: String,
-        voting_duration: u64,
-        vote_threshold: VoteThreshold
     ) -> Result<()> {
-        ctx.accounts.process(name, description_link, voting_duration, vote_threshold)
+        ctx.accounts.process(name, description_link)
     }
 
     pub fn create_required_signatory(
@@ -76,5 +74,12 @@ pub mod easy_dao {
     ) -> Result<()> {
         ctx.accounts.process()
     }
+
+    pub fn cast_vote(
+        ctx: Context<CastVote>,
+        vote: Vote
+    ) -> Result<()> {
+        ctx.accounts.process(vote)
+    }   
 }
 

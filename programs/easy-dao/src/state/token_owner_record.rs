@@ -48,4 +48,12 @@ impl TokenOwnerRecord {
     /// TokenOwnerRecord 的序列化长度（单位：字节）
     /// 包含基本治理信息、可选代理地址，以及最多 MAX_LOCKS 个锁记录（每个 41 字节）
     pub const LEN: usize = 8 + 1 + 32 * 3 + 8 * 2 + 2 + 33 + 4 + Self::MAX_LOCKS * 41;
+
+    pub fn decrease_outstanding_proposal_count(&mut self) {
+        if self.outstanding_proposal_count != 0 {
+            self.outstanding_proposal_count = self.outstanding_proposal_count
+                .checked_sub(1)
+                .unwrap();
+        }
+    }
 }

@@ -2,14 +2,20 @@ use anchor_lang::{prelude::*, system_program};
 use anchor_spl::token_interface::Mint;
 
 use crate::{
-    error::GovernanceError, Governance, GovernanceAccountType, Proposal, ProposalDeposit, ProposalState, Realm, TokenOwnerRecord, VoteThreshold
+    error::GovernanceError, 
+    Governance, 
+    GovernanceAccountType, 
+    Proposal, 
+    ProposalDeposit, 
+    ProposalState, 
+    Realm, 
+    TokenOwnerRecord
 };
 
 
 #[derive(Accounts)]
 pub struct CreateProposal<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
     pub authority: Signer<'info>,
 
     pub realm: Account<'info, Realm>,
@@ -45,7 +51,7 @@ pub struct CreateProposal<'info> {
 
     #[account(
         init,
-        payer = payer,
+        payer = authority,
         space = Proposal::LEN,
         seeds = [
             governance.key().as_ref(),
@@ -58,11 +64,11 @@ pub struct CreateProposal<'info> {
 
     #[account(
         init,
-        payer = payer,
+        payer = authority,
         space = ProposalDeposit::LEN,
         seeds = [
             ProposalDeposit::PROPOSAL_DEPOSIT_SEED,
-            payer.key().as_ref(),
+            authority.key().as_ref(),
             proposal.key().as_ref()
         ],
         bump
@@ -78,13 +84,10 @@ impl<'info> CreateProposal<'info> {
         &mut self,
         name: String, 
         description_link: String,
-        voting_duration: u64,
-        vote_threshold: VoteThreshold
     ) -> Result<()> {
         self.governance.resolve_vote_threshold()?;
 
         // 基本参数校验
-        require!(voting_duration > 0, GovernanceError::InvalidVotingDuration);
         require!(name.as_bytes().len() <= 50, GovernanceError::NameTooLong);
         require!(description_link.as_bytes().len() <= 255, GovernanceError::LinkTooLong);
         
@@ -112,8 +115,6 @@ impl<'info> CreateProposal<'info> {
         proposal.token_owner_record = self.token_owner_record.key();
         proposal.state = ProposalState::Draft;
         proposal.voting_started_at = current_ts;
-        proposal.voting_deadline = current_ts + voting_duration;
-        proposal.vote_threshold = vote_threshold;
         proposal.name = name;
         proposal.description_link = description_link;
 
@@ -122,14 +123,14 @@ impl<'info> CreateProposal<'info> {
         let proposal_deposit = &mut self.proposal_deposit;
         proposal_deposit.account_type = GovernanceAccountType::ProposalDeposit;
         proposal_deposit.proposal = self.proposal.key();
-        proposal_deposit.deposit_payer = self.payer.key();
+        proposal_deposit.deposit_payer = self.authority.key();
 
         // 将押金 lamports 转入 proposal_deposit 账户（在 rent_exempt 之外再锁定押金）
         if proposal_deposit_amount > 0 {
             let cpi_ctx = CpiContext::new(
                 self.system_program.to_account_info(),
                 system_program::Transfer {
-                    from: self.payer.to_account_info(),
+                    from: self.authority.to_account_info(),
                     to: self.proposal_deposit.to_account_info(),
                 },
             );

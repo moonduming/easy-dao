@@ -55,6 +55,9 @@ pub enum GovernanceError {
     #[msg("必要签名账户与传入的不一致")]
     InvalidRequiredSignatory,
 
+    #[msg("提案当前状态不允许执行此操作")]
+    InvalidProposalState,
+
     #[msg("提案已被签署")]
     ProposalAlreadySignedOff,
 
@@ -66,6 +69,9 @@ pub enum GovernanceError {
     
     #[msg("投票持续时间必须大于 0")]
     InvalidVotingDuration,
+
+    #[msg("提案投票期已过")]
+    ProposalVotingTimeExpired,
 
     #[msg("提案标题过长，最多 50 字节")]
     NameTooLong,

@@ -15,7 +15,6 @@ use crate::{
 #[derive(Accounts)]
 pub struct AddSignatory<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
     pub authority: Signer<'info>,
     pub signatory: SystemAccount<'info>,
 
@@ -36,7 +35,7 @@ pub struct AddSignatory<'info> {
 
     #[account(
         init,
-        payer = payer,
+        payer = authority,
         space = SignatoryRecord::LEN,
         seeds = [
             SignatoryRecord::SIGNATORY_RECORD_SEED,

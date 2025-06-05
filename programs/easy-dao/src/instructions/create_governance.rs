@@ -8,7 +8,6 @@ use crate::{error::GovernanceError, Governance, GovernanceAccountType, Governanc
 #[derive(Accounts)]
 pub struct CreateGovernance<'info> {
     #[account(mut)]
-    pub payer: Signer<'info>,
     pub authority: Signer<'info>,
 
     #[account(
@@ -18,7 +17,7 @@ pub struct CreateGovernance<'info> {
 
     #[account(
         init,
-        payer = payer,
+        payer = authority,
         space = Governance::LEN,
         seeds = [
             realm.key().as_ref(),

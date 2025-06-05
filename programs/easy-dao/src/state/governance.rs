@@ -81,9 +81,6 @@ impl Governance {
                     return err!(GovernanceError::InvalidVoteThresholdPercentage);
                 }
             },
-            VoteThreshold::QuorumPercentage(_) => {
-                return err!(GovernanceError::VoteThresholdTypeNotSupported);
-            },
             VoteThreshold::Disabled => {}
         }
 
