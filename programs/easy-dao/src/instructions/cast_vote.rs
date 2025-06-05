@@ -1,3 +1,4 @@
+//! 投票指令
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::Mint;
 
@@ -16,6 +17,7 @@ pub struct CastVote<'info> {
     pub mint: InterfaceAccount<'info, Mint>,
 
     #[account(
+        mut,
         has_one = realm @ GovernanceError::InvalidGovernanceRealm
     )]
     pub governance: Account<'info, Governance>,
@@ -103,16 +105,16 @@ impl<'info> CastVote<'info> {
             .get_max_voter_weight_from_mint_supply(
                 self.mint.supply,
                 self.realm.config.community_mint_max_voter_weight_source.clone()
-            )?;
+            ).ok_or(error!(GovernanceError::Overflow))?;
 
-        if self.proposal.try_tip_vote(
-            u128::from(max_voter_weight), 
+        if self.proposal.maybe_finalize_vote(
+            max_voter_weight, 
             self.governance.config.community_vote_threshold.clone()
         )? {
             if self.proposal_owner.key() == self.authority.key() {
-                self.vote_token_owner_record.decrease_outstanding_proposal_count();
+                self.vote_token_owner_record.decrease_outstanding_proposal_count()?;
             } else {
-                self.proposal_token_owner_record.decrease_outstanding_proposal_count();
+                self.proposal_token_owner_record.decrease_outstanding_proposal_count()?;
             }
             
             self.governance.active_proposal_count = self.governance.active_proposal_count
@@ -124,6 +126,7 @@ impl<'info> CastVote<'info> {
         vote_record.account_type = GovernanceAccountType::VoteRecord;
         vote_record.proposal = self.proposal.key();
         vote_record.governing_token_owner = self.vote_token_owner_record.key();
+        vote_record.is_relinquished = false;
         vote_record.vote_weight = self.vote_token_owner_record.governing_token_deposit_amount;
         vote_record.vote = vote;
         

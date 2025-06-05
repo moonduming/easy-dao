@@ -78,4 +78,7 @@ pub enum GovernanceError {
 
     #[msg("描述链接过长，最多 255 字节")]
     LinkTooLong,
+
+    #[msg("提案仍在投票期内，无法执行该操作")]
+    ProposalStillInVoting,
 }

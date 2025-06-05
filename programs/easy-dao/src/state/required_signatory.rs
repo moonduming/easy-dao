@@ -1,5 +1,4 @@
 //! 必须签名者账户
-
 use anchor_lang::prelude::*;
 
 use super::GovernanceAccountType;

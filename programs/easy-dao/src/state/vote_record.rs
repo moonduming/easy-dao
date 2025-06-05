@@ -1,3 +1,4 @@
+//! 投票记录账户
 use anchor_lang::prelude::*;
 
 use super::GovernanceAccountType;
@@ -20,6 +21,8 @@ pub struct VoteRecord {
     pub proposal: Pubkey,
     /// 治理代币拥有者地址
     pub governing_token_owner: Pubkey,
+    /// 是否已释放
+    pub is_relinquished: bool,
     /// 投票权重
     pub vote_weight: u64,
     /// 投票结果

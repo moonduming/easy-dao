@@ -1,3 +1,4 @@
+//! 创建必须签名者指令
 use anchor_lang::prelude::*;
 
 use crate::{error::GovernanceError, Governance, GovernanceAccountType, Realm, RequiredSignatory};

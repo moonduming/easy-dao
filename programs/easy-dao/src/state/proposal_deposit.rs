@@ -1,3 +1,5 @@
+
+//! 提案押金账户
 use anchor_lang::prelude::*;
 
 use super::GovernanceAccountType;

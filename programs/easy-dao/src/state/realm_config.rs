@@ -1,5 +1,4 @@
 //! 配置账户，用于配置DAO的配置信息
-
 use anchor_lang::prelude::*;
 
 use super::GovernanceAccountType;

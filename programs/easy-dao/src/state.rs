@@ -58,7 +58,7 @@ pub enum GovernanceAccountType {
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Debug, Clone, PartialEq, Eq)]
-/// 投票通过门槛枚举
+/// 投票通过门槛枚举画
 pub enum VoteThreshold {
     /// 赞成票达到指定百分比即通过（如 YesVotePercentage(60)）
     YesVotePercentage(u8),

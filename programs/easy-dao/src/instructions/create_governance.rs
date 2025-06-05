@@ -1,5 +1,4 @@
 //! 管理目标账户创建指令
-
 use anchor_lang::prelude::*;
 
 use crate::{error::GovernanceError, Governance, GovernanceAccountType, GovernanceConfig, Realm};

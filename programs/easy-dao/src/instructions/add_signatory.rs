@@ -1,3 +1,4 @@
+//! 添加签名者指令
 use anchor_lang::prelude::*;
 
 use crate::{

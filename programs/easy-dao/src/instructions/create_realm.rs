@@ -1,5 +1,4 @@
 //! 初始化治理领域
-
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 

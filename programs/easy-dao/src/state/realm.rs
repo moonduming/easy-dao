@@ -1,5 +1,4 @@
 //! 治理账户
-
 use anchor_lang::prelude::*;
 
 use super::GovernanceAccountType;

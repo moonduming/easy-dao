@@ -1,3 +1,4 @@
+//! 提案账户
 use anchor_lang::prelude::*;
 
 use crate::error::GovernanceError;
@@ -66,7 +67,7 @@ impl Proposal {
             GovernanceError::InvalidProposalState
         );
 
-        let now = Clock::get()?.unix_timestamp.try_into().unwrap();
+        let now = Clock::get()?.unix_timestamp.try_into()?;
         let end = self.voting_started_at 
             + config.voting_base_time as u64 
             + config.voting_cool_off_time as u64;
@@ -77,27 +78,27 @@ impl Proposal {
     }
 
     pub fn get_max_voter_weight_from_mint_supply(
-        &self, mint_supply: u64,
+        &self, 
+        mint_supply: u64,
         mint_max_voter_weight_source: MintMaxVoterWeightSource
-    ) -> Result<u64> {
+    ) -> Option<u128> {
         let max_voter_weight = match mint_max_voter_weight_source {
             MintMaxVoterWeightSource::SupplyFraction(fraction) => {
                 let sfb = MintMaxVoterWeightSource::SUPPLY_FRACTION_BASE;
                 if fraction == sfb {
-                    return Ok(mint_supply);
+                    return Some(u128::from(mint_supply));
                 }
                 
                 u128::from(mint_supply)
-                    .checked_mul(u128::from(fraction)).unwrap()
-                    .checked_div(u128::from(sfb)).unwrap() as u64
-                
+                    .checked_mul(u128::from(fraction))?
+                    .checked_div(u128::from(sfb))?
             },
-            MintMaxVoterWeightSource::Absolute(amount) => amount,
+            MintMaxVoterWeightSource::Absolute(amount) => u128::from(amount),
         };
-        Ok(max_voter_weight)
+        Some(max_voter_weight)
     }
 
-    pub fn try_tip_vote(
+    pub fn maybe_finalize_vote(
         &mut self,
         max_voter_weight: u128,
         vote_threshold: VoteThreshold
@@ -130,5 +131,24 @@ impl Proposal {
         } else {
             return err!(GovernanceError::Overflow);
         }
-    }   
+    }
+
+    pub fn assert_can_finalize_vote(
+        &self,
+        config: &GovernanceConfig
+    ) -> Result<()> {
+        require!(
+            self.state == ProposalState::Voting, 
+            GovernanceError::InvalidProposalState
+        );
+
+        let now = Clock::get()?.unix_timestamp.try_into()?;
+        let end = self.voting_started_at 
+            + config.voting_base_time as u64 
+            + config.voting_cool_off_time as u64;
+
+        require!(end < now, GovernanceError::ProposalStillInVoting);
+        
+        Ok(())
+    }
 }

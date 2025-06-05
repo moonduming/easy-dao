@@ -1,3 +1,4 @@
+//! 签名提案指令
 use anchor_lang::prelude::*;
 
 use crate::{
@@ -55,7 +56,7 @@ impl<'info> SignOffProposal<'info> {
                 .as_deref()
                 .ok_or(GovernanceError::MissingRequiredSignatory)?;
 
-            self.proposal.signing_off_at = Some(Clock::get()?.unix_timestamp.try_into().unwrap());
+            self.proposal.signing_off_at = Some(Clock::get()?.unix_timestamp.try_into()?);
         } else {
             let sr = self.signatory_record
                 .as_deref_mut()
@@ -68,7 +69,7 @@ impl<'info> SignOffProposal<'info> {
             sr.signed_off = true;
 
             if self.proposal.signatories_signed_off_count == 0 {
-                self.proposal.signing_off_at = Some(Clock::get()?.unix_timestamp.try_into().unwrap());
+                self.proposal.signing_off_at = Some(Clock::get()?.unix_timestamp.try_into()?);
                 self.proposal.state = ProposalState::SigningOff;
             }
             self.proposal.signatories_signed_off_count = self.proposal

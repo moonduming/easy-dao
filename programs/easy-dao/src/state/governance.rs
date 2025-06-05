@@ -1,21 +1,20 @@
 //! 创建管理目标账户
-
 use anchor_lang::prelude::*;
 
 use super::{GovernanceAccountType, VoteThreshold};
 use crate::error::GovernanceError;
 
 
-#[derive(AnchorSerialize, AnchorDeserialize, Debug, Clone)]
-/// 投票提前通过机制
-pub enum VoteTipping {
-    /// 严格投票，不支持提前结束
-    Strict,
-    /// 允许提前通过（如达到门槛时即结束）
-    Early,
-    /// 禁用（投票始终无效/不计票）
-    Disabled,
-}
+// #[derive(AnchorSerialize, AnchorDeserialize, Debug, Clone)]
+// /// 投票提前通过机制
+// pub enum VoteTipping {
+//     /// 严格投票，不支持提前结束
+//     Strict,
+//     /// 允许提前通过（如达到门槛时即结束）
+//     Early,
+//     /// 禁用（投票始终无效/不计票）
+//     Disabled,
+// }
 
 
 #[derive(AnchorSerialize, AnchorDeserialize, Debug, Clone)]
@@ -38,7 +37,7 @@ pub struct GovernanceConfig {
 
     /// 社区投票的提前通过规则
     /// 例: Early 表示提前达到门槛即可结束投票
-    pub community_vote_tipping: VoteTipping,
+    // pub community_vote_tipping: VoteTipping,
 
     /// 投票结束后的冷却期（单位：秒）
     pub voting_cool_off_time: u32
