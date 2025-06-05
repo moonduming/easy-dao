@@ -23,7 +23,7 @@ pub struct CastVote<'info> {
     pub governance: Account<'info, Governance>,
 
     #[account(
-        has_one = governance @ GovernanceError::InvalidProposalGovernance,
+        has_one = governance @ GovernanceError::InvalidGovernanceForAccount,
         constraint = proposal.token_owner_record == proposal_owner.key() 
             @ GovernanceError::InvalidProposalTokenOwnerRecord
     )]

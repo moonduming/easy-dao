@@ -25,7 +25,7 @@ pub struct FinalizeVote<'info> {
 
     #[account(
         mut,
-        has_one = governance @ GovernanceError::InvalidProposalGovernance,
+        has_one = governance @ GovernanceError::InvalidGovernanceForAccount,
         constraint = proposal.token_owner_record == proposal_owner.key() 
             @ GovernanceError::InvalidProposalTokenOwnerRecord
     )]

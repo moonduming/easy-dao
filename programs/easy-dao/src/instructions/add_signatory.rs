@@ -28,7 +28,7 @@ pub struct AddSignatory<'info> {
 
     #[account(
         mut,
-        has_one = governance @ GovernanceError::InvalidProposalGovernance,
+        has_one = governance @ GovernanceError::InvalidGovernanceForAccount,
         constraint = proposal.token_owner_record == authority.key() 
             @ GovernanceError::InvalidProposalTokenOwnerRecord
     )]

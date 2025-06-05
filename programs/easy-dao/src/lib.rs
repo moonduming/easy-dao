@@ -75,11 +75,29 @@ pub mod easy_dao {
         ctx.accounts.process()
     }
 
+    pub fn sign_off_proposal(
+        ctx: Context<SignOffProposal>
+    ) -> Result<()> {
+        ctx.accounts.process()
+    }
+
     pub fn cast_vote(
         ctx: Context<CastVote>,
         vote: Vote
     ) -> Result<()> {
         ctx.accounts.process(vote)
-    }   
+    }
+
+    pub fn finalize_vote(
+        ctx: Context<FinalizeVote>
+    ) -> Result<()> {
+        ctx.accounts.process()
+    }
+
+    pub fn relinquish_vote(
+        ctx: Context<RelinquishVote>
+    ) -> Result<()> {
+        ctx.accounts.process()
+    }
 }
 

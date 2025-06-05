@@ -9,6 +9,7 @@ pub mod add_signatory;
 pub mod sign_off_proposal;
 pub mod cast_vote;
 pub mod finalize_vote;
+pub mod relinquish_vote;
 
 pub use create_realm::*;
 pub use create_token_owner_record::*;
@@ -21,3 +22,4 @@ pub use add_signatory::*;
 pub use sign_off_proposal::*;
 pub use cast_vote::*;
 pub use finalize_vote::*;
+pub use relinquish_vote::*;

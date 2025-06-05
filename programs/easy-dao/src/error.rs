@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
 
 
-
 #[error_code]
 pub enum GovernanceError {
     #[msg("Realm 中的社区代币 mint 与传入的不一致")]
@@ -46,8 +45,8 @@ pub enum GovernanceError {
     #[msg("必要签名账户不属于治理账户")]
     InvalidRequiredGovernance,
 
-    #[msg("Proposal 的 governance 字段与传入的 governance 不一致")]
-    InvalidProposalGovernance,
+    #[msg("账户的 governance 字段与传入的 governance 不一致")]
+    InvalidGovernanceForAccount,
 
     #[msg("Proposal 的 TokenOwnerRecord 字段与传入的不一致")]
     InvalidProposalTokenOwnerRecord,
@@ -81,4 +80,7 @@ pub enum GovernanceError {
 
     #[msg("提案仍在投票期内，无法执行该操作")]
     ProposalStillInVoting,
+
+    #[msg("投票已被释放，不能重复操作")]
+    VoteAlreadyRelinquished,
 }

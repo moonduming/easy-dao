@@ -23,7 +23,7 @@ pub struct SignOffProposal<'info> {
 
     #[account(
         mut,
-        has_one = governance @ GovernanceError::InvalidProposalGovernance
+        has_one = governance @ GovernanceError::InvalidGovernanceForAccount
     )]
     pub proposal: Account<'info, Proposal>,
 
@@ -36,7 +36,7 @@ pub struct SignOffProposal<'info> {
 
     #[account(
         mut,
-        has_one = proposal @ GovernanceError::InvalidProposalGovernance,
+        has_one = proposal @ GovernanceError::InvalidGovernanceForAccount,
         has_one = signatory @ GovernanceError::InvalidRequiredSignatory,
     )]
     pub signatory_record: Option<Account<'info, SignatoryRecord>>,
