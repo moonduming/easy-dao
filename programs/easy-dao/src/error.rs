@@ -83,4 +83,7 @@ pub enum GovernanceError {
 
     #[msg("投票已被释放，不能重复操作")]
     VoteAlreadyRelinquished,
+
+    #[msg("提案已包含执行指令，不能重复添加")]
+    TransactionAlreadyExists,
 }

@@ -125,7 +125,7 @@ describe("easy-dao", () => {
   })
 
   it("Is initialized!", async () => {
-    // (1) RealmConfig —— 只用社区代币，reserved 占位 0 即可
+    // (1) RealmConfig —— 只用社区代币
     const realmConfig = {
       minCommunityWeightToCreateGovernance: new anchor.BN(1), // 至少 1 枚代币就能提案
       communityMintMaxVoterWeightSource: {                   // 不做上限限制

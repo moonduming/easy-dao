@@ -75,6 +75,13 @@ pub mod easy_dao {
         ctx.accounts.process()
     }
 
+    pub fn add_transaction(
+        ctx: Context<AddTransaction>,
+        instruction_data: InstructionData
+    ) -> Result<()> {
+        ctx.accounts.process(instruction_data)
+    }
+
     pub fn sign_off_proposal(
         ctx: Context<SignOffProposal>
     ) -> Result<()> {

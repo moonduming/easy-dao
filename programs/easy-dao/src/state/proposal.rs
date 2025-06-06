@@ -18,8 +18,12 @@ pub enum ProposalState {
     Succeeded,
     /// 未达到通过门槛
     Defeated,
-    /// 已被管理员或发起人取消
-    Cancelled,
+    /// 执行中
+    Executing,
+    /// 执行失败
+    ExecutionFailed,
+    /// 已完成
+    Completed,
 }
 
 
@@ -50,6 +54,8 @@ pub struct Proposal {
     pub voting_completed_at: Option<u64>,
     /// 提案通过门槛配置
     pub vote_threshold: Option<VoteThreshold>,
+    /// 是否包含需要执行的链上指令
+    pub has_transaction: bool,
     /// 提案标题
     pub name: String,
     /// 提案详情的外链（IPFS / Arweave 等）
@@ -59,7 +65,7 @@ pub struct Proposal {
 
 impl Proposal {
     /// 账户大小，标题最多50字，详情外链255
-    pub const LEN: usize = 8 + 1 + 32 * 2 + 2 + 9 + 1 + 8 * 3 + 9 + 3 + 4 + 64 + 4 + 255;
+    pub const LEN: usize = 8 + 1 + 32 * 2 + 2 + 9 + 1 + 8 * 3 + 9 + 3 + 4 + 64 + 4 + 255 + 1;
 
     pub fn assert_can_cast_vote(&self, config: &GovernanceConfig) -> Result<()> {
         require!(
