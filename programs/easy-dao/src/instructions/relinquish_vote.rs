@@ -1,3 +1,5 @@
+//! 释放投票指令
+
 use anchor_lang::prelude::*;
 
 use crate::{error::GovernanceError, Governance, Proposal, ProposalState, Realm, TokenOwnerRecord, VoteRecord};
@@ -43,7 +45,7 @@ impl<'info> RelinquishVote<'info> {
         require!(
             matches!(
                 self.proposal.state, 
-                ProposalState::Succeeded 
+                ProposalState::Completed 
                     | ProposalState::Defeated
             ), 
             GovernanceError::ProposalStillInVoting

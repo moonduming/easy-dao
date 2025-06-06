@@ -86,4 +86,16 @@ pub enum GovernanceError {
 
     #[msg("提案已包含执行指令，不能重复添加")]
     TransactionAlreadyExists,
+
+    #[msg("指令账户的 proposal 字段与传入的 proposal 不一致")]
+    InvalidProposalForTransaction,
+
+    #[msg("当前提案状态不允许执行指令")]
+    InvalidStateCannotExecuteTransaction,
+
+    #[msg("该指令已被执行，不能重复执行")]
+    TransactionAlreadyExecuted,
+
+    #[msg("剩余账户数量与指令元信息不匹配")]
+    InvalidInstructionAccounts,
 }

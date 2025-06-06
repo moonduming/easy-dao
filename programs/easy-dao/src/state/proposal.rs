@@ -14,8 +14,6 @@ pub enum ProposalState {
     SigningOff,
     /// 投票进行中
     Voting,
-    /// 达到通过门槛
-    Succeeded,
     /// 未达到通过门槛
     Defeated,
     /// 执行中
@@ -23,7 +21,7 @@ pub enum ProposalState {
     /// 执行失败
     ExecutionFailed,
     /// 已完成
-    Completed,
+    Completed
 }
 
 
@@ -52,6 +50,8 @@ pub struct Proposal {
     pub voting_started_at: u64,
     /// 投票完成的 Unix 时间戳（秒）；实际完成时间；若投票尚未结束则为 None
     pub voting_completed_at: Option<u64>,
+    /// 提案关闭时间
+    pub closed_at: Option<u64>,
     /// 提案通过门槛配置
     pub vote_threshold: Option<VoteThreshold>,
     /// 是否包含需要执行的链上指令
@@ -65,7 +65,7 @@ pub struct Proposal {
 
 impl Proposal {
     /// 账户大小，标题最多50字，详情外链255
-    pub const LEN: usize = 8 + 1 + 32 * 2 + 2 + 9 + 1 + 8 * 3 + 9 + 3 + 4 + 64 + 4 + 255 + 1;
+    pub const LEN: usize = 8 + 1 + 32 * 2 + 2 + 9 + 1 + 8 * 3 + 9 + 9 + 3 + 1 + 4 + 64 + 4 + 255;
 
     pub fn assert_can_cast_vote(&self, config: &GovernanceConfig) -> Result<()> {
         require!(
@@ -122,13 +122,15 @@ impl Proposal {
 
         if let Ok(threshold_u64) = u64::try_from(yes_vote_threshold) {
             if self.yes_vote_weight >= threshold_u64 {
-                self.state = ProposalState::Succeeded;
-                self.voting_completed_at = Some(
-                    Clock::get()?
-                        .unix_timestamp
-                        .try_into()
-                        .unwrap()
-                );
+                let now = Clock::get()?.unix_timestamp.try_into()?;
+
+                if self.has_transaction {
+                    self.state = ProposalState::Executing;
+                } else {
+                    self.state = ProposalState::Completed;
+                    self.closed_at = Some(now);
+                }
+                self.voting_completed_at = Some(now);
                 self.vote_threshold = Some(vote_threshold);
                 Ok(true)
             } else {

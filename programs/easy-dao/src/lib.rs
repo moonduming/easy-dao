@@ -106,5 +106,11 @@ pub mod easy_dao {
     ) -> Result<()> {
         ctx.accounts.process()
     }
+
+    pub fn execute_transaction(
+        ctx: Context<ExecuteTransaction>
+    ) -> Result<()> {
+        process_execute_transaction(ctx)
+    }   
 }
 
