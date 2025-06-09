@@ -28,6 +28,7 @@ pub struct CreateProposal<'info> {
     pub mint: InterfaceAccount<'info, Mint>,
 
     #[account(
+        mut,
         seeds = [
             realm.key().as_ref(),
             Governance::GOVERNANCE_SEED
@@ -139,7 +140,6 @@ impl<'info> CreateProposal<'info> {
             system_program::transfer(cpi_ctx, proposal_deposit_amount)?;
         }
         
-
         Ok(())
     }
 }

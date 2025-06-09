@@ -98,4 +98,10 @@ pub enum GovernanceError {
 
     #[msg("剩余账户数量与指令元信息不匹配")]
     InvalidInstructionAccounts,
+
+    #[msg("ProposalDeposit 账户与当前 Proposal 不一致")]
+    InvalidProposalDepositProposal,
+
+    #[msg("ProposalDeposit 账户的 payer 与传入的 payer 不一致")]
+    InvalidProposalDepositDepositPayer,
 }

@@ -7,4 +7,4 @@ test-ledger
 .yarn
 .vscode
 tests/addresses.json
-tests/user_secret.json
+tests/users_secret.json

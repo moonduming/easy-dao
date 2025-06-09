@@ -12,6 +12,7 @@ pub mod finalize_vote;
 pub mod relinquish_vote;
 pub mod add_transaction;
 pub mod execute_transaction;
+pub mod refund_proposal_deposit;
 
 pub use create_realm::*;
 pub use create_token_owner_record::*;
@@ -27,3 +28,4 @@ pub use finalize_vote::*;
 pub use relinquish_vote::*;
 pub use add_transaction::*;
 pub use execute_transaction::*;
+pub use refund_proposal_deposit::*;

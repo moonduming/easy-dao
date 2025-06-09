@@ -35,10 +35,6 @@ pub struct GovernanceConfig {
     /// 例: 提案发起后至少要开放投票多少时间
     pub voting_base_time: u32,
 
-    /// 社区投票的提前通过规则
-    /// 例: Early 表示提前达到门槛即可结束投票
-    // pub community_vote_tipping: VoteTipping,
-
     /// 投票结束后的冷却期（单位：秒）
     pub voting_cool_off_time: u32
 }
@@ -67,7 +63,7 @@ impl Governance {
     /// 创建提案时需要缴纳的安全押金（投票结束或提案取消后可退还)
     pub const SECURITY_DEPOSIT_BASE_LAMPORTS: u64 = 100_000_000; // 0.1 SOL
     /// 账户大小
-    pub const LEN: usize = 8 + 1 + 32 * 2 + 23 + 1 + 8;
+    pub const LEN: usize = 8 + 1 + 32 + 1 + 22 + 1 + 8;
     /// 种子
     pub const GOVERNANCE_SEED: &'static [u8] = b"governance";
 
