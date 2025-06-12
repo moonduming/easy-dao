@@ -332,7 +332,7 @@ describe("easy-dao", () => {
     console.log("✅ Governance 账户链上校验通过！");
   });
 
-  it("create proposal", async () => {
+  it.only("create proposal", async () => {
     const tx = await program.methods.createProposal(
       "终极测试提案667",
       "https://example.com"
@@ -367,7 +367,7 @@ describe("easy-dao", () => {
       [
         governancePda.toBuffer(),
         tokenOwnerRecordPda.toBuffer(),
-        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+        new anchor.BN(7).toArrayLike(Buffer, "le", 8),
       ],
       program.programId
     );
@@ -404,7 +404,7 @@ describe("easy-dao", () => {
       // 计算当前网络 73 字节账户所需的最小租金
       let minRent = new anchor.BN(await connection.getMinimumBalanceForRentExemption(73));
       // 加上押金 0.1 sol (提案数 * 0.1)
-      minRent = minRent.add(new anchor.BN(100_000_000));
+      minRent = minRent.add(new anchor.BN(500_000_000));
       if (!minRent.eq(new anchor.BN(proposalDepositAccountInfo.lamports))) {
         throw new Error(`❌ 押金账户 lamports 错误, expected: ${minRent.toString()}, got: ${proposalDepositAccountInfo.lamports}`);
       }
@@ -637,7 +637,7 @@ describe("easy-dao", () => {
     console.log(`✅ add transaction success, tx: ${tx}`);
   })
 
-  it("sign off proposal", async () => { 
+  it.only("sign off proposal", async () => { 
     const [governancePda] = PublicKey.findProgramAddressSync(
       [realmPda.toBuffer(), Buffer.from("governance")],
       program.programId
@@ -658,7 +658,7 @@ describe("easy-dao", () => {
       [
         governancePda.toBuffer(),
         tokenOwnerRecordPda.toBuffer(),
-        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+        new anchor.BN(7).toArrayLike(Buffer, "le", 8),
       ],
       program.programId
     );
@@ -741,7 +741,7 @@ describe("easy-dao", () => {
 
   })
 
-  it("cast vote", async () => {
+  it.only("cast vote", async () => {
     const [governancePda] = PublicKey.findProgramAddressSync(
       [realmPda.toBuffer(), Buffer.from("governance")],
       program.programId
@@ -760,29 +760,20 @@ describe("easy-dao", () => {
       program.programId
     );
     const tokenOwnerRecordAccount = await program.account.tokenOwnerRecord.fetch(tokenOwnerRecordPda);
-    console.log("tokenOwnerRecordAccount: ", tokenOwnerRecordAccount.governingTokenDepositAmount.toString());
+    console.log("tokenOwnerRecordAccount1: ", tokenOwnerRecordAccount);
+    console.log("tokenOwnerRecordAccount1: ", tokenOwnerRecordAccount.governingTokenDepositAmount.toString());
 
     // 计算提案账户
     const [proposalPda] = PublicKey.findProgramAddressSync(
       [
         governancePda.toBuffer(),
         tokenOwnerRecordPda.toBuffer(),
-        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+        new anchor.BN(7).toArrayLike(Buffer, "le", 8),
       ],
       program.programId
     );
 
     for (let i = 0; i < 13; i++) {
-      const [tokenOwnerRecordPda2] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("governance"), 
-          realmPda.toBuffer(), 
-          mint.toBuffer(), 
-          users[i].publicKey.toBuffer()
-        ],
-        program.programId
-      );
-
       const voteArg: any = (i >= 5 && i <= 7) ? { no: {} } : { yes: {} };
       const tx = await program.methods.castVote(
         voteArg
@@ -794,13 +785,12 @@ describe("easy-dao", () => {
         mint: mint,
         authority: users[i].publicKey,
         user: users[0].publicKey,
-        voteTokenOwnerRecord: tokenOwnerRecordPda2,
-        tokenOwnerRecord: tokenOwnerRecordPda,
       } as any)
       .signers([users[i]])
       .rpc();
       console.log(`✅ cast vote success, tx: ${tx}`);
     }
+
 
     const proposalAccount = await program.account.proposal.fetch(proposalPda);
     console.log("proposalAccount: ", proposalAccount);
@@ -815,6 +805,8 @@ describe("easy-dao", () => {
     // if (proposalAccount.noVoteWeight !== new anchor.BN(3)) {
     //   throw new Error("❌ noVoteWeight 应为 3");
     // }
+    const tokenOwnerRecordAccount3 = await program.account.tokenOwnerRecord.fetch(tokenOwnerRecordPda);
+    console.log("tokenOwnerRecordAccount3: ", tokenOwnerRecordAccount3);
     console.log("✅ cast vote 校验通过！");
   })
 
@@ -1031,7 +1023,7 @@ describe("easy-dao", () => {
     console.log("✅ relinquish vote 校验通过！");
   })
 
-  it.only("refund proposal deposit", async () => {
+  it("refund proposal deposit", async () => {
     const [governancePda] = PublicKey.findProgramAddressSync(
       [realmPda.toBuffer(), Buffer.from("governance")],
       program.programId
@@ -1081,6 +1073,8 @@ describe("easy-dao", () => {
     .signers([users[0]])
     .rpc();
     console.log(`✅ refund proposal deposit success, tx: ${tx}`);
+
+    
  
     // 读取users[0]现在拥有的sol数量
     const userBalance2 = await connection.getBalance(users[0].publicKey);

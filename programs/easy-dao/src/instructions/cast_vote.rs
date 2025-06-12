@@ -45,7 +45,9 @@ pub struct CastVote<'info> {
     )]
     pub vote_token_owner_record: Account<'info, TokenOwnerRecord>,
 
-    // todo: 如果 user == authority，那么账户重复了
+    /// todo: 如果 user == authority，那么账户重复了
+    /// todo: token_owner_record 必须在 vote_token_owner_record 之后
+    /// 防止两个是同一个账户是发生覆盖
     #[account(
         mut,
         seeds = [
@@ -84,11 +86,6 @@ impl<'info> CastVote<'info> {
 
         self.proposal.assert_can_cast_vote(&self.governance.config)?;
 
-        self.vote_token_owner_record.unrelinquished_votes_count = self.vote_token_owner_record
-            .unrelinquished_votes_count
-            .checked_add(1)
-            .ok_or(error!(GovernanceError::Overflow))?;
-
         match vote {
             Vote::Yes => {
                 self.proposal.yes_vote_weight = self.proposal.yes_vote_weight
@@ -113,15 +110,23 @@ impl<'info> CastVote<'info> {
             max_voter_weight, 
             self.governance.config.community_vote_threshold.clone()
         )? {
-            if self.user.key() == self.authority.key() {
-                self.vote_token_owner_record.decrease_outstanding_proposal_count()?;
-            } else {
-                self.token_owner_record.decrease_outstanding_proposal_count()?;
-            }
+            self.token_owner_record.decrease_outstanding_proposal_count()?;
             
             self.governance.active_proposal_count = self.governance.active_proposal_count
                 .checked_sub(1)
                 .ok_or(error!(GovernanceError::Overflow))?; 
+        }
+
+        if self.user.key() == self.authority.key() {
+            self.token_owner_record.unrelinquished_votes_count = self.token_owner_record
+            .unrelinquished_votes_count
+            .checked_add(1)
+            .ok_or(error!(GovernanceError::Overflow))?;
+        } else {
+            self.vote_token_owner_record.unrelinquished_votes_count = self.vote_token_owner_record
+            .unrelinquished_votes_count
+            .checked_add(1)
+            .ok_or(error!(GovernanceError::Overflow))?;
         }
 
         let vote_record = &mut self.vote_record;
