@@ -104,4 +104,10 @@ pub enum GovernanceError {
 
     #[msg("ProposalDeposit 账户的 payer 与传入的 payer 不一致")]
     InvalidProposalDepositDepositPayer,
+
+    #[msg("当前提案状态不允许结束投票或 finalize 操作")]
+    ProposalNotFinalizable,
+
+    #[msg("无效的 MintMaxVoterWeightSource 配置")]
+    InvalidMintMaxVoterWeightSource,
 }

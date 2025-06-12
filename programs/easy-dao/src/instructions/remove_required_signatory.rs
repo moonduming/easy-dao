@@ -42,7 +42,6 @@ impl<'info> RemoveRequiredSignatory<'info> {
             .required_signatories_count
             .checked_sub(1)
             .ok_or(error!(GovernanceError::Overflow))?;
-
         
         Ok(())
     }

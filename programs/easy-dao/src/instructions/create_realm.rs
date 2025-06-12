@@ -2,7 +2,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
-use crate::state::{GovernanceAccountType, GoverningTokenConfig, Realm, RealmConfig, RealmConfigAccount, Reserved110};
+use crate::{error::GovernanceError, state::{GovernanceAccountType, GoverningTokenConfig, Realm, RealmConfig, RealmConfigAccount, Reserved110}, MintMaxVoterWeightSource};
 
 
 #[derive(Accounts)]
@@ -64,6 +64,13 @@ impl<'info> CreateRealm<'info> {
         realm_config: RealmConfig,
         governing_token_config: GoverningTokenConfig
     ) -> Result<()> {
+        match realm_config.community_mint_max_voter_weight_source {
+            MintMaxVoterWeightSource::SupplyFraction(_fraction) => {},
+            MintMaxVoterWeightSource::Absolute(amount) => {
+                require!(amount > 0, GovernanceError::InvalidMintMaxVoterWeightSource);
+            }
+        }
+        
         let realm_config_account = &mut self.realm_config_account;
         realm_config_account.account_type = GovernanceAccountType::RealmConfig;
         realm_config_account.realm = self.realm.key();

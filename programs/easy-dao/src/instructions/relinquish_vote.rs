@@ -32,7 +32,7 @@ pub struct RelinquishVote<'info> {
     #[account(
         mut,
         has_one = proposal @ GovernanceError::InvalidGovernanceForAccount,
-        constraint = vote_record.governing_token_owner == signer.key() 
+        constraint = vote_record.governing_token_owner == token_owner_record.key() 
             @ GovernanceError::InvalidTokenOwnerRecordOwner
     )]
     pub vote_record: Account<'info, VoteRecord>,

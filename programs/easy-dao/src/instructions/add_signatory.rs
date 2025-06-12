@@ -27,9 +27,15 @@ pub struct AddSignatory<'info> {
     pub governance: Account<'info, Governance>,
 
     #[account(
+        constraint = aut_record.governing_token_owner == authority.key() 
+            @ GovernanceError::InvalidProposalTokenOwnerRecord
+    )]
+    pub aut_record: Account<'info, TokenOwnerRecord>,
+
+    #[account(
         mut,
         has_one = governance @ GovernanceError::InvalidGovernanceForAccount,
-        constraint = proposal.token_owner_record == authority.key() 
+        constraint = proposal.token_owner_record == aut_record.key() 
             @ GovernanceError::InvalidProposalTokenOwnerRecord
     )]
     pub proposal: Account<'info, Proposal>,
@@ -54,7 +60,7 @@ pub struct AddSignatory<'info> {
     pub required_signatory: Option<Account<'info, RequiredSignatory>>,
 
     #[account(
-        constraint = token_owner_record.governing_token_owner == authority.key() 
+        constraint = token_owner_record.governing_token_owner == signatory.key() 
             @ GovernanceError::InvalidProposalTokenOwnerRecord
     )]
     pub token_owner_record: Option<Account<'info, TokenOwnerRecord>>,

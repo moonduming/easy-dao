@@ -45,6 +45,11 @@ pub struct SignOffProposal<'info> {
 
 impl<'info> SignOffProposal<'info> {
     pub fn process(&mut self) -> Result<()> {
+        require!(
+            self.proposal.state == ProposalState::Draft,
+            GovernanceError::InvalidProposalState
+        );
+        
         if self.proposal.signatories_count > 0 
             && self.proposal.signatories_count < self.governance.required_signatories_count 
         {
@@ -79,6 +84,7 @@ impl<'info> SignOffProposal<'info> {
         }
 
         if self.proposal.signatories_signed_off_count == self.proposal.signatories_count {
+            self.proposal.voting_started_at = Clock::get()?.unix_timestamp.try_into()?;
             self.proposal.state = ProposalState::Voting;
         }
 

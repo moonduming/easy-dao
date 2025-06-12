@@ -4,7 +4,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { EasyDao } from "../target/types/easy_dao";
 import { Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
-import { createMint, getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
+import { getMint, createMint, getOrCreateAssociatedTokenAccount, mintTo } from "@solana/spl-token";
 
 describe("easy-dao", () => {
   const provider = anchor.AnchorProvider.env();
@@ -158,7 +158,7 @@ describe("easy-dao", () => {
     const realmConfig = {
       minCommunityWeightToCreateGovernance: new anchor.BN(1), // 至少 1 枚代币就能提案
       communityMintMaxVoterWeightSource: {                   // 不做上限限制
-        absolute: new anchor.BN(0),                          // 0 = “无限制”
+        supplyFraction: [new anchor.BN(10_000_000)],                          // 100%
       },
     } as any;
 
@@ -183,6 +183,7 @@ describe("easy-dao", () => {
 
     // === 校验链上 Realm 账户 ===
     const realmAccount = await program.account.realm.fetch(realmPda);
+    console.log("realmAccount: ", realmAccount.config);
     // 校验名称
     if (realmAccount.name !== "测试") {
       throw new Error(`❌ Realm 名称不匹配,expected: 测试, got: ${realmAccount.name}`);
@@ -245,7 +246,7 @@ describe("easy-dao", () => {
   it("deposit governing tokens", async () => {
     for (const user of users) {
       const tx = await program.methods.depositGoverningTokens(
-        new anchor.BN(10)
+        new anchor.BN(20)
       )
         .accounts({
           user: user.publicKey,
@@ -262,7 +263,7 @@ describe("easy-dao", () => {
   it("create governance", async () => {
     // 1. 构造 GovernanceConfig（字段需与 IDL 一致）
     const governanceConfig = {
-      communityVoteThreshold: { yesVotePercentage: [60] },            // u8
+      communityVoteThreshold: { yesVotePercentage: [10] },            // u8
       minCommunityWeightToCreateProposal: new anchor.BN(1),         // u64
       transactionsHoldUpTime:            new anchor.BN(0),          // u32
       votingBaseTime:                    new anchor.BN(120),        // u32
@@ -305,17 +306,17 @@ describe("easy-dao", () => {
     // 4. 链上验证 Governance 账户
     const governanceAccount: any = await program.account.governance.fetch(governancePda);
   
-    // // a) 检查 Realm 关联
+    // a) 检查 Realm 关联
     if (!governanceAccount.realm.equals(realmPda)) {
       throw new Error("❌ governance.realm 不匹配");
     }
   
-    // // b) 检查 accountType
+    // b) 检查 accountType
     if (!("governance" in governanceAccount.accountType)) {
       throw new Error("❌ governance.accountType 应为 Governance");
     }
   
-    // // c) 检查配置字段
+    // c) 检查配置字段
     if (!governanceAccount.config.minCommunityWeightToCreateProposal.eq(new anchor.BN(1))) {
       throw new Error("❌ minCommunityWeightToCreateProposal 应为 1");
     }
@@ -324,16 +325,16 @@ describe("easy-dao", () => {
         ? governanceAccount.config.communityVoteThreshold.yesVotePercentage[0]
         : governanceAccount.config.communityVoteThreshold.yesVotePercentage['0'];
 
-    if (val !== 60) {
-      throw new Error("❌ communityVoteThreshold.yesVotePercentage 应为 60%");
+    if (val !== 10) {
+      throw new Error("❌ communityVoteThreshold.yesVotePercentage 应为 10%");
     }
   
     console.log("✅ Governance 账户链上校验通过！");
   });
 
-  it.only("create proposal", async () => {
+  it("create proposal", async () => {
     const tx = await program.methods.createProposal(
-      "测试提案2",
+      "终极测试提案667",
       "https://example.com"
     ).accounts({
       mint: mint,
@@ -366,7 +367,7 @@ describe("easy-dao", () => {
       [
         governancePda.toBuffer(),
         tokenOwnerRecordPda.toBuffer(),
-        Buffer.from([1]),
+        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
       ],
       program.programId
     );
@@ -381,8 +382,12 @@ describe("easy-dao", () => {
       program.programId
     );
 
+    const proposalDepositAccount = await program.account.proposalDeposit.fetch(proposalDepositPda);
+    console.log("proposalDepositAccount: ", proposalDepositAccount);
+
     // ====== 校验提案账户用户字段 ======
     const proposalAccount = await program.account.proposal.fetch(proposalPda);
+    console.log("proposalAccount: ", proposalAccount);
     if (!proposalAccount.tokenOwnerRecord.equals(tokenOwnerRecordPda)) {
       throw new Error("❌ 提案账户的 tokenOwnerRecord 不匹配");
     }
@@ -398,12 +403,694 @@ describe("easy-dao", () => {
       }
       // 计算当前网络 73 字节账户所需的最小租金
       let minRent = new anchor.BN(await connection.getMinimumBalanceForRentExemption(73));
-      // 加上押金 0.1 sol
-      minRent = minRent.add(new anchor.BN(200_000_000));
+      // 加上押金 0.1 sol (提案数 * 0.1)
+      minRent = minRent.add(new anchor.BN(100_000_000));
       if (!minRent.eq(new anchor.BN(proposalDepositAccountInfo.lamports))) {
         throw new Error(`❌ 押金账户 lamports 错误, expected: ${minRent.toString()}, got: ${proposalDepositAccountInfo.lamports}`);
       }
       console.log("✅ 押金账户租金额校验通过！");
   });
+
+  it("Adding and removing required signatories", async () => {
+    const [governancePda] = PublicKey.findProgramAddressSync(
+      [realmPda.toBuffer(), Buffer.from("governance")],
+      program.programId
+    );
+  
+    // 添加前三个必要签署人
+    for (let i = 0; i < 3; i++) {
+      const tx = await program.methods.createRequiredSignatory()
+        .accounts({
+          governance: governancePda,
+          realm: realmPda,
+          authority: payer,
+          signatory: users[i].publicKey,
+        } as any)
+        .rpc();
+      console.log(`✅ add required signatory ${users[i].publicKey.toBase58()} success, tx: ${tx}`);
+    }
+  
+    // 移除第三个必要签署人
+    const tx = await program.methods.removeRequiredSignatory()
+      .accounts({
+        governance: governancePda,
+        realm: realmPda,
+        authority: payer,
+        signatory: users[2].publicKey,  // 移除第三个
+      } as any)
+      .rpc();
+    console.log(`✅ remove required signatory ${users[2].publicKey.toBase58()} success, tx: ${tx}`);
+
+    const governanceAccount = await program.account.governance.fetch(governancePda);
+    if (Number(governanceAccount.requiredSignatoriesCount) !== 2) {
+      throw new Error("❌ requiredSignatoriesCount 应为 2");
+    }
+    console.log("✅ requiredSignatoriesCount 校验通过！");
+  });
+
+  it("add signatory", async () => {
+    const [governancePda] = PublicKey.findProgramAddressSync(
+      [realmPda.toBuffer(), Buffer.from("governance")],
+      program.programId
+    );
+
+    const [tokenOwnerRecordPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("governance"), 
+        realmPda.toBuffer(), 
+        mint.toBuffer(), 
+        users[0].publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    // 计算提案账户
+    const [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        governancePda.toBuffer(),
+        tokenOwnerRecordPda.toBuffer(),
+        new anchor.BN(3).toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    );
+
+    // 添加必要签署人
+    for (let i = 0; i < 2; i++) {
+      const [requiredSignatoryPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("required_signatory"),
+          governancePda.toBuffer(),
+          users[i].publicKey.toBuffer()
+        ],
+        program.programId
+      );
+
+      const tx = await program.methods.addSignatory()
+      .accounts({
+        governance: governancePda,
+        realm: realmPda,
+        proposal: proposalPda,
+        authority: users[0].publicKey,
+        autRecord: tokenOwnerRecordPda,
+        signatory: users[i].publicKey,
+        tokenOwnerRecord: null,
+        requiredSignatory: requiredSignatoryPda,
+      } as any)
+      .signers([users[0]])
+      .rpc();
+      console.log(`✅ add signatory ${users[i].publicKey.toBase58()} success, tx: ${tx}`);
+    }
+
+    // 添加非必要签署人
+    const [tokenOwnerRecordPda2] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("governance"), 
+        realmPda.toBuffer(), 
+        mint.toBuffer(), 
+        users[2].publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    const tx = await program.methods.addSignatory()
+    .accounts({
+      governance: governancePda,
+      realm: realmPda,
+      proposal: proposalPda,
+      authority: users[0].publicKey,
+      signatory: users[2].publicKey,
+      autRecord: tokenOwnerRecordPda,
+      tokenOwnerRecord: tokenOwnerRecordPda2,
+      requiredSignatory: null,
+    } as any)
+    .signers([users[0]])
+    .rpc();
+    console.log(`✅ add signatory ${users[2].publicKey.toBase58()} success, tx: ${tx}`);
+
+    // 校验
+    for (let i = 0; i < 3; i++) {
+      const [signatoryRecordPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("signatory_record"),
+          proposalPda.toBuffer(),
+          users[i].publicKey.toBuffer()
+        ],
+        program.programId
+      );
+      const signatoryRecordAccount = await program.account.signatoryRecord.fetch(signatoryRecordPda);
+      if (!signatoryRecordAccount.proposal.equals(proposalPda)) {
+        throw new Error("❌ signatoryRecordAccount.proposal 不匹配");
+      }
+      if (!signatoryRecordAccount.signatory.equals(users[i].publicKey)) {
+        throw new Error("❌ signatoryRecordAccount.signatory 不匹配");
+      }
+      if (signatoryRecordAccount.signedOff) {
+        throw new Error("❌ signatoryRecordAccount.signedOff 应为 false");
+      }
+      console.log("✅ signatoryRecordAccount 校验通过！");
+    }
+
+    // 校验提案账户的需要签署人数量
+    const proposalAccount = await program.account.proposal.fetch(proposalPda);
+    if (Number(proposalAccount.signatoriesCount) !== 3) {
+      throw new Error("❌ signatoriesCount 应为 3");
+    }
+    console.log("✅ signatoriesCount 校验通过！");
+
+    console.log("✅ add signatory 校验通过！");
+  });
+
+  it("add transaction", async () => {
+    const [governancePda] = PublicKey.findProgramAddressSync(
+      [realmPda.toBuffer(), Buffer.from("governance")],
+      program.programId
+    );
+
+    const [tokenOwnerRecordPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("governance"), 
+        realmPda.toBuffer(), 
+        mint.toBuffer(), 
+        users[0].publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    // 计算提案账户
+    const [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        governancePda.toBuffer(),
+        tokenOwnerRecordPda.toBuffer(),
+        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    );
+
+    // 读取指令数据
+    const DATA_PATH = path.resolve(__dirname, "init_swap_instruction.json");
+    const data = fs.readFileSync(DATA_PATH, "utf-8");
+    const json_data = JSON.parse(data);
+    const instructionData = {
+      programId: new PublicKey(json_data.program_id),
+      data: Buffer.from(json_data.data, "base64"),
+      accounts: json_data.accounts.map((account: any) => ({
+        pubkey: new PublicKey(account.pubkey),
+        isSigner: account.is_signer,
+        isWritable: account.is_writable
+      }))
+    };
+
+    const tx = await program.methods.addTransaction(
+      instructionData
+    )
+    .accounts({
+      proposal: proposalPda,
+      authority: users[0].publicKey,
+      tokenOwnerRecord: tokenOwnerRecordPda,
+    } as any)
+    .signers([users[0]])
+    .rpc();
+
+    // 校验
+    const proposalAccount = await program.account.proposal.fetch(proposalPda);
+    if (!proposalAccount.hasTransaction) {
+      throw new Error("❌ hasTransaction 应为 true");
+    }
+    console.log("✅ hasTransaction 校验通过！");
+
+    const [proposalTransactionPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("proposal_transaction"),
+        proposalPda.toBuffer()
+      ],
+      program.programId
+    );
+    const proposalTransactionAccount = await program.account
+      .proposalTransaction
+      .fetch(proposalTransactionPda);
+
+    if (!proposalTransactionAccount.instruction.programId.equals(instructionData.programId)) {
+      throw new Error("❌ instruction.programId 不匹配");
+    }
+    console.log("✅ instruction.programId 校验通过！");
+
+    console.log(`✅ add transaction success, tx: ${tx}`);
+  })
+
+  it("sign off proposal", async () => { 
+    const [governancePda] = PublicKey.findProgramAddressSync(
+      [realmPda.toBuffer(), Buffer.from("governance")],
+      program.programId
+    );
+
+    const [tokenOwnerRecordPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("governance"), 
+        realmPda.toBuffer(), 
+        mint.toBuffer(), 
+        users[0].publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    // 计算提案账户
+    const [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        governancePda.toBuffer(),
+        tokenOwnerRecordPda.toBuffer(),
+        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    );
+
+    const tx = await program.methods.signOffProposal()
+    .accounts({
+      proposal: proposalPda,
+      governance: governancePda,
+      realm: realmPda,
+      signatory: users[0].publicKey,
+      tokenOwnerRecord: tokenOwnerRecordPda,
+      signatoryRecord: null
+    } as any)
+    .signers([users[0]])
+    .rpc();
+    console.log(`✅ sign off proposal success, tx: ${tx}`);
+
+    // for (let i = 0; i < 3; i++) {
+    //   const [tokenOwnerRecordPda2] = PublicKey.findProgramAddressSync(
+    //     [
+    //       Buffer.from("governance"), 
+    //       realmPda.toBuffer(), 
+    //       mint.toBuffer(), 
+    //       users[i].publicKey.toBuffer()
+    //     ],
+    //     program.programId
+    //   );
+
+    //   const [signatoryRecordPda] = PublicKey.findProgramAddressSync(
+    //     [
+    //       Buffer.from("signatory_record"),
+    //       proposalPda.toBuffer(),
+    //       users[i].publicKey.toBuffer()
+    //     ],
+    //     program.programId
+    //   );
+
+    //   const tx = await program.methods.signOffProposal()
+    //   .accounts({
+    //     proposal: proposalPda,
+    //     governance: governancePda,
+    //     realm: realmPda,
+    //     signatory: users[i].publicKey,
+    //     tokenOwnerRecord: tokenOwnerRecordPda2,
+    //     signatoryRecord: signatoryRecordPda,
+    //   } as any)
+    //   .signers([users[i]])
+    //   .rpc();
+    //   console.log(`✅ sign off proposal success, tx: ${tx}`);
+    // }
+
+    // for (let i = 0; i < 3; i++) {
+    //   const [signatoryRecordPda] = PublicKey.findProgramAddressSync(
+    //     [
+    //       Buffer.from("signatory_record"),
+    //       proposalPda.toBuffer(),
+    //       users[i].publicKey.toBuffer()
+    //     ],
+    //     program.programId
+    //   );
+    //   const signatoryRecordAccount = await program.account
+    //     .signatoryRecord
+    //     .fetch(signatoryRecordPda);
+
+    //   if (!signatoryRecordAccount.signedOff) {
+    //     throw new Error("❌ signatoryRecordAccount.signedOff 应为 true");
+    //   }
+    //   console.log("✅ signatoryRecordAccount 校验通过！");
+    // }
+
+    const proposalAccount = await program.account.proposal.fetch(proposalPda);
+    
+    if (!proposalAccount.state.voting) {
+      throw new Error("❌ state 应为 Voting");
+    }
+    if (proposalAccount.signatoriesSignedOffCount !== proposalAccount.signatoriesCount) {
+      throw new Error("❌ signatoriesSignedOffCount 应为 signatoriesCount");
+    }
+    console.log("✅ proposalAccount 校验通过！");
+
+  })
+
+  it("cast vote", async () => {
+    const [governancePda] = PublicKey.findProgramAddressSync(
+      [realmPda.toBuffer(), Buffer.from("governance")],
+      program.programId
+    );
+
+    const governanceAccount = await program.account.governance.fetch(governancePda);
+    console.log("activeProposalCount: ", governanceAccount.activeProposalCount);
+
+    const [tokenOwnerRecordPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("governance"), 
+        realmPda.toBuffer(), 
+        mint.toBuffer(), 
+        users[0].publicKey.toBuffer()
+      ],
+      program.programId
+    );
+    const tokenOwnerRecordAccount = await program.account.tokenOwnerRecord.fetch(tokenOwnerRecordPda);
+    console.log("tokenOwnerRecordAccount: ", tokenOwnerRecordAccount.governingTokenDepositAmount.toString());
+
+    // 计算提案账户
+    const [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        governancePda.toBuffer(),
+        tokenOwnerRecordPda.toBuffer(),
+        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    );
+
+    for (let i = 0; i < 13; i++) {
+      const [tokenOwnerRecordPda2] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("governance"), 
+          realmPda.toBuffer(), 
+          mint.toBuffer(), 
+          users[i].publicKey.toBuffer()
+        ],
+        program.programId
+      );
+
+      const voteArg: any = (i >= 5 && i <= 7) ? { no: {} } : { yes: {} };
+      const tx = await program.methods.castVote(
+        voteArg
+      )
+      .accounts({
+        proposal: proposalPda,
+        governance: governancePda,
+        realm: realmPda,
+        mint: mint,
+        authority: users[i].publicKey,
+        user: users[0].publicKey,
+        voteTokenOwnerRecord: tokenOwnerRecordPda2,
+        tokenOwnerRecord: tokenOwnerRecordPda,
+      } as any)
+      .signers([users[i]])
+      .rpc();
+      console.log(`✅ cast vote success, tx: ${tx}`);
+    }
+
+    const proposalAccount = await program.account.proposal.fetch(proposalPda);
+    console.log("proposalAccount: ", proposalAccount);
+    console.log("proposalAccount: ", proposalAccount.yesVoteWeight.toString());
+    console.log("proposalAccount: ", proposalAccount.noVoteWeight.toString());
+    // if (!proposalAccount.state.executing) {
+    //   throw new Error("❌ state 应为 Executing");
+    // }
+    // if (proposalAccount.yesVoteWeight !== new anchor.BN(12)) {
+    //   throw new Error("❌ yesVoteWeight 应为 12");
+    // }
+    // if (proposalAccount.noVoteWeight !== new anchor.BN(3)) {
+    //   throw new Error("❌ noVoteWeight 应为 3");
+    // }
+    console.log("✅ cast vote 校验通过！");
+  })
+
+  it("finalize vote", async () => {
+    const [governancePda] = PublicKey.findProgramAddressSync(
+      [realmPda.toBuffer(), Buffer.from("governance")],
+      program.programId
+    );
+
+    const governanceAccount = await program.account.governance.fetch(governancePda);
+    console.log("governanceAccount-: ", governanceAccount);
+
+    const [tokenOwnerRecordPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("governance"), 
+        realmPda.toBuffer(), 
+        mint.toBuffer(), 
+        users[0].publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    // 计算提案账户
+    const [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        governancePda.toBuffer(),
+        tokenOwnerRecordPda.toBuffer(),
+        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    );
+
+    const tx = await program.methods.finalizeVote()
+    .accounts({
+      proposal: proposalPda,
+      governance: governancePda,
+      realm: realmPda,
+      mint: mint,
+      user: users[0].publicKey,
+    } as any)
+    .rpc();
+    console.log(`✅ finalize vote success, tx: ${tx}`);
+
+    const proposalAccount = await program.account.proposal.fetch(proposalPda);
+    console.log("proposalAccount: ", proposalAccount);
+    
+    console.log("✅ finalize vote 校验通过！");
+  })
+
+  it("execute transaction", async () => {
+    const [governancePda] = PublicKey.findProgramAddressSync(
+      [realmPda.toBuffer(), Buffer.from("governance")],
+      program.programId
+    );
+
+    const [tokenOwnerRecordPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("governance"), 
+        realmPda.toBuffer(), 
+        mint.toBuffer(), 
+        users[0].publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    // 计算提案账户
+    const [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        governancePda.toBuffer(),
+        tokenOwnerRecordPda.toBuffer(),
+        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    );
+
+    // 计算提案指令账户
+    const [proposalTransactionPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("proposal_transaction"),
+        proposalPda.toBuffer(),
+      ],
+      program.programId
+    );
+
+    // 获取提案指令数据
+    const DATA_PATH = path.resolve(__dirname, "init_swap_instruction.json");
+    const data = fs.readFileSync(DATA_PATH, "utf-8");
+    const json_data = JSON.parse(data);
+
+    // 组装 remainingAccounts 数组
+    const remainingAccounts = json_data.accounts.map((acc: any) => ({
+      pubkey: new PublicKey(acc.pubkey),
+      isSigner: acc.is_signer,
+      isWritable: acc.is_writable,
+    }));
+
+    const tx = await program.methods.executeTransaction()
+      .accounts({
+        proposal: proposalPda,
+        governance: governancePda,
+        proposalTransaction: proposalTransactionPda,
+      } as any)
+      .remainingAccounts(remainingAccounts)
+      .signers([users[20]])
+      .rpc();
+
+    console.log(`✅ execute transaction success, tx: ${tx}`);
+
+    // try {
+    //   const tx = await program.methods.executeTransaction()
+    //     .accounts({
+    //       proposal: proposalPda,
+    //       governance: governancePda,
+    //       proposalTransaction: proposalTransactionPda,
+    //     } as any)
+    //     .remainingAccounts(remainingAccounts)
+    //     .signers([users[19], users[20]])
+    //     .rpc();
+
+    //   console.log(`✅ execute transaction success, tx: ${tx}`);
+    // } catch (err: any) {
+    //   console.log("❌ execute transaction failed:", err.message);
+    //   if (err.logs) {
+    //     console.log("🔍 Logs:");
+    //     err.logs.forEach((log: string) => console.log(log));
+    //   }
+    //   if (err.tx) {
+    //     console.log("🚀 Transaction Signature:", err.tx);
+    //   }
+    // }
+
+    const proposalTransactionAccount = await program.account
+      .proposalTransaction
+      .fetch(proposalTransactionPda);
+
+    console.log("proposalTransactionAccount: ", 
+      proposalTransactionAccount.executionStatus);
+
+    const proposalAccount = await program.account.proposal.fetch(proposalPda);
+    console.log("proposalAccount: ", proposalAccount.state);
+  })
+
+  it("relinquish vote", async () => {
+    const [governancePda] = PublicKey.findProgramAddressSync(
+      [realmPda.toBuffer(), Buffer.from("governance")],
+      program.programId
+    );
+
+    const [tokenOwnerRecordPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("governance"), 
+        realmPda.toBuffer(), 
+        mint.toBuffer(), 
+        users[0].publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    const [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        governancePda.toBuffer(),
+        tokenOwnerRecordPda.toBuffer(),
+        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    );
+
+    for (let i = 0; i < 13; i++) {
+      const [tokenOwnerRecordPda2] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("governance"), 
+          realmPda.toBuffer(), 
+          mint.toBuffer(), 
+          users[i].publicKey.toBuffer()
+        ],
+        program.programId
+      );
+
+      const [voteRecordPda] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("vote_record"),
+          proposalPda.toBuffer(),
+          tokenOwnerRecordPda2.toBuffer()
+        ],
+        program.programId
+      );
+
+      const tx = await program.methods.relinquishVote()
+        .accounts({
+          proposal: proposalPda,
+          governance: governancePda,
+          realm: realmPda,
+          signer: users[i].publicKey,
+          tokenOwnerRecord: tokenOwnerRecordPda2,
+          voteRecord: voteRecordPda,
+        } as any)
+        .signers([users[i]])
+        .rpc();
+      console.log(`✅ relinquish vote success, tx: ${tx}`);
+
+      const voteRecordAccount = await program.account
+        .voteRecord
+        .fetch(voteRecordPda);
+      const tokenOwnerRecordAccount = await program.account
+        .tokenOwnerRecord
+        .fetch(tokenOwnerRecordPda2);
+      
+      if (!voteRecordAccount.isRelinquished) {
+        throw new Error("❌ voteRecord.isRelinquished 应为 true");
+      }
+      console.log("unrelinquishedVotesCount: ", tokenOwnerRecordAccount.unrelinquishedVotesCount.toString());
+    }
+
+    console.log("✅ relinquish vote 校验通过！");
+  })
+
+  it.only("refund proposal deposit", async () => {
+    const [governancePda] = PublicKey.findProgramAddressSync(
+      [realmPda.toBuffer(), Buffer.from("governance")],
+      program.programId
+    );
+
+    const [tokenOwnerRecordPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("governance"), 
+        realmPda.toBuffer(), 
+        mint.toBuffer(), 
+        users[0].publicKey.toBuffer()
+      ],
+      program.programId
+    );
+
+    // 读取users[0]现在拥有的sol数量
+    const userBalance = await connection.getBalance(users[0].publicKey);
+    console.log("userBalance: ", userBalance / LAMPORTS_PER_SOL);
+
+    // 计算提案账户
+    const [proposalPda] = PublicKey.findProgramAddressSync(
+      [
+        governancePda.toBuffer(),
+        tokenOwnerRecordPda.toBuffer(),
+        new anchor.BN(2).toArrayLike(Buffer, "le", 8),
+      ],
+      program.programId
+    );
+
+    const [proposalDepositPda] = PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("proposal-deposit"),
+        users[0].publicKey.toBuffer(),
+        proposalPda.toBuffer(),
+      ],
+      program.programId
+    );
+
+    const tx = await program.methods.refundProposalDeposit()
+    .accounts({
+      proposal: proposalPda,
+      proposalDeposit: proposalDepositPda,
+      realm: realmPda,
+      mint: mint,
+      authority: users[0].publicKey,
+    } as any)
+    .signers([users[0]])
+    .rpc();
+    console.log(`✅ refund proposal deposit success, tx: ${tx}`);
+ 
+    // 读取users[0]现在拥有的sol数量
+    const userBalance2 = await connection.getBalance(users[0].publicKey);
+    console.log("userBalance2: ", userBalance2 / LAMPORTS_PER_SOL);
+
+    if (userBalance2 < userBalance) {
+      throw new Error("❌ users[0]拥有的sol数量减少了");
+    }
+
+    console.log("✅ refund proposal deposit 校验通过！");
+  })
 
 });

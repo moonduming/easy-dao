@@ -59,7 +59,7 @@ pub struct CreateProposal<'info> {
         seeds = [
             governance.key().as_ref(),
             token_owner_record.key().as_ref(),
-            token_owner_record.outstanding_proposal_count.to_le_bytes().as_ref()
+            token_owner_record.proposal_index.to_le_bytes().as_ref()
         ],
         bump
     )]
@@ -100,12 +100,15 @@ impl<'info> CreateProposal<'info> {
             return err!(GovernanceError::InsufficientVotingPower);
         }
 
-        let current_ts = Clock::get()?.unix_timestamp as u64;
-
         self.token_owner_record.outstanding_proposal_count = self.token_owner_record
                 .outstanding_proposal_count
                 .checked_add(1)
                 .ok_or(error!(GovernanceError::Overflow))?;
+
+        self.token_owner_record.proposal_index = self.token_owner_record
+            .proposal_index
+            .checked_add(1)
+            .ok_or(error!(GovernanceError::Overflow))?;
 
         self.governance.active_proposal_count =  self.governance
             .active_proposal_count
@@ -117,7 +120,6 @@ impl<'info> CreateProposal<'info> {
         proposal.governance = self.governance.key();
         proposal.token_owner_record = self.token_owner_record.key();
         proposal.state = ProposalState::Draft;
-        proposal.voting_started_at = current_ts;
         proposal.name = name;
         proposal.description_link = description_link;
 

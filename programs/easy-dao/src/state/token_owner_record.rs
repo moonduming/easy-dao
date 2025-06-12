@@ -38,7 +38,8 @@ pub struct TokenOwnerRecord {
     /// 用户授权的治理代理人地址（可代为投票和提案）
     pub governance_delegate: Option<Pubkey>,
     /// 对用户治理代币存款的外部锁列表（如插件、质押等设置的锁定）
-    pub locks: Vec<TokenOwnerRecordLock>
+    pub locks: Vec<TokenOwnerRecordLock>,
+    pub proposal_index: u64
 }
 
 
@@ -48,7 +49,7 @@ impl TokenOwnerRecord {
     pub const MAX_LOCKS: usize = 5;
     /// TokenOwnerRecord 的序列化长度（单位：字节）
     /// 包含基本治理信息、可选代理地址，以及最多 MAX_LOCKS 个锁记录（每个 41 字节）
-    pub const LEN: usize = 8 + 1 + 32 * 3 + 8 * 2 + 2 + 33 + 4 + Self::MAX_LOCKS * 41;
+    pub const LEN: usize = 8 + 1 + 32 * 3 + 8 * 2 + 2 + 33 + 8 + 4 + Self::MAX_LOCKS * 41;
 
     pub fn decrease_outstanding_proposal_count(&mut self) -> Result<()> {
         if self.outstanding_proposal_count != 0 {

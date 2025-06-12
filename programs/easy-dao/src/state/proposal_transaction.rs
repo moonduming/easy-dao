@@ -6,16 +6,22 @@ use crate::GovernanceAccountType;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct AccountMeta {
+    /// 账户公钥
     pub pubkey: Pubkey,
+    /// 是否为签名者
     pub is_signer: bool,
+    /// 是否为可写账户
     pub is_writable: bool,
 }
 
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug)]
 pub struct InstructionData {
+    /// 被调用的合约程序 ID
     pub program_id: Pubkey,
+    /// 编码后的指令数据
     pub data: Vec<u8>,
+    /// 调用指令所需的账户元信息列表
     pub accounts: Vec<AccountMeta>, 
 }
 
@@ -32,19 +38,27 @@ impl InstructionData {
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Debug, Default)]
 pub enum ExecutionStatus {
+    /// 尚未执行
     #[default]
     Pending,
+    /// 执行成功
     Success,
+    /// 执行失败
     Error,
 }
 
 
 #[account]
 pub struct ProposalTransaction {
+    /// 当前账户类型标记
     pub account_type: GovernanceAccountType,
+    /// 所属提案的 Pubkey
     pub proposal: Pubkey,
+    /// 要执行的指令内容
     pub instruction: InstructionData,
+    /// 指令执行的时间戳（Unix 秒），未执行则为 None
     pub executed_at: Option<u64>,
+    /// 指令当前执行状态
     pub execution_status: ExecutionStatus,
 }
 

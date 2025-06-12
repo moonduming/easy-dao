@@ -31,7 +31,7 @@ pub struct VoteRecord {
 
 
 impl VoteRecord {
-    pub const LEN: usize = 8 + 1 + 32 + 32 + 8 + 1;
+    pub const LEN: usize = 8 + 1 + 32 + 32 + 1 + 8 + 1;
     pub const VOTERECORD_SEED: &'static [u8] = b"vote_record";
 }
 

@@ -1,13 +1,20 @@
 use anchor_lang::prelude::*;
 
-use crate::{error::GovernanceError, GovernanceAccountType, ExecutionStatus, InstructionData, Proposal, ProposalState, ProposalTransaction};
+use crate::{error::GovernanceError, ExecutionStatus, GovernanceAccountType, InstructionData, Proposal, ProposalState, ProposalTransaction, TokenOwnerRecord};
 
 
 #[derive(Accounts)]
 #[instruction(instruction_data: InstructionData)]
 pub struct AddTransaction<'info> {
     #[account(mut)]
-    pub token_owner_record: Signer<'info>,
+    pub authority: Signer<'info>,
+    
+    #[account(
+        mut,
+        constraint = token_owner_record.governing_token_owner == authority.key() 
+            @ GovernanceError::InvalidTokenOwnerRecordOwner,
+    )]
+    pub token_owner_record: Account<'info, TokenOwnerRecord>,
     
     #[account(
         mut,
@@ -17,7 +24,7 @@ pub struct AddTransaction<'info> {
 
     #[account(
         init,
-        payer = token_owner_record,
+        payer = authority,
         space = ProposalTransaction::FIXED_LEN 
             + instruction_data.serialized_len(),
         seeds = [

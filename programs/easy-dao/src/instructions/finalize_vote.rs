@@ -8,7 +8,7 @@ use crate::{error::GovernanceError, Governance, Proposal, ProposalState, Realm, 
 
 #[derive(Accounts)]
 pub struct FinalizeVote<'info> {
-    pub proposal_owner: SystemAccount<'info>,
+    pub user: SystemAccount<'info>,
 
     pub realm: Account<'info, Realm>,
 
@@ -26,8 +26,8 @@ pub struct FinalizeVote<'info> {
     #[account(
         mut,
         has_one = governance @ GovernanceError::InvalidGovernanceForAccount,
-        constraint = proposal.token_owner_record == proposal_owner.key() 
-            @ GovernanceError::InvalidProposalTokenOwnerRecord
+        has_one = token_owner_record 
+            @ GovernanceError::InvalidProposalTokenOwnerRecord,
     )]
     pub proposal: Account<'info, Proposal>,
 
@@ -37,14 +37,14 @@ pub struct FinalizeVote<'info> {
             TokenOwnerRecord::RECORD_SEED,
             realm.key().as_ref(),
             mint.key().as_ref(),
-            proposal_owner.key().as_ref(),
+            user.key().as_ref(),
         ],
         bump,
         has_one = realm @ GovernanceError::InvalidTokenOwnerRecordRealm,
-        constraint = proposal_token_owner_record.governing_token_owner == proposal_owner.key() 
+        constraint = token_owner_record.governing_token_owner == user.key() 
             @ GovernanceError::InvalidTokenOwnerRecordOwner
     )]
-    pub proposal_token_owner_record: Account<'info, TokenOwnerRecord>,
+    pub token_owner_record: Account<'info, TokenOwnerRecord>,
 }
 
 
@@ -54,6 +54,7 @@ impl<'info> FinalizeVote<'info> {
         
         let max_voter_weight = self.proposal.get_max_voter_weight_from_mint_supply(
             self.mint.supply,
+            self.mint.decimals,
             self.realm.config.community_mint_max_voter_weight_source.clone()
         ).ok_or(error!(GovernanceError::Overflow))?;
 
@@ -70,7 +71,7 @@ impl<'info> FinalizeVote<'info> {
             self.proposal.vote_threshold = Some(self.governance.config.community_vote_threshold.clone());
         }
         
-        self.proposal_token_owner_record.decrease_outstanding_proposal_count()?;
+        self.token_owner_record.decrease_outstanding_proposal_count()?;
         self.governance.active_proposal_count = self.governance.active_proposal_count
             .checked_sub(1)
             .ok_or(error!(GovernanceError::Overflow))?;
