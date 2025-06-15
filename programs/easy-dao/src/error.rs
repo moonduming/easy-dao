@@ -57,7 +57,7 @@ pub enum GovernanceError {
     #[msg("提案当前状态不允许执行此操作")]
     InvalidProposalState,
 
-    #[msg("提案已被签署")]
+    #[msg("已签署提案")]
     ProposalAlreadySignedOff,
 
     #[msg("缺少 RequiredSignatory 账户")]

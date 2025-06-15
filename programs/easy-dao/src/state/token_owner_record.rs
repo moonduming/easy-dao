@@ -39,6 +39,7 @@ pub struct TokenOwnerRecord {
     pub governance_delegate: Option<Pubkey>,
     /// 对用户治理代币存款的外部锁列表（如插件、质押等设置的锁定）
     pub locks: Vec<TokenOwnerRecordLock>,
+    /// 提案索引累加器
     pub proposal_index: u64
 }
 

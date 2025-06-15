@@ -46,7 +46,11 @@ pub struct SignOffProposal<'info> {
 impl<'info> SignOffProposal<'info> {
     pub fn process(&mut self) -> Result<()> {
         require!(
-            self.proposal.state == ProposalState::Draft,
+            matches!(
+                self.proposal.state,
+                ProposalState::Draft
+                    | ProposalState::SigningOff
+            ),
             GovernanceError::InvalidProposalState
         );
         

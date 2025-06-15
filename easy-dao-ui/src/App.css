@@ -1,0 +1,268 @@
+/* ───────────────────────────
+   Futuristic Tech Layout & Neon Glow
+   ─────────────────────────── */
+:root {
+  --c-bg-1: #05070e;
+  --c-bg-2: #0e1729;
+  --c-bg-glow: #12325c;
+  --c-card: rgba(12, 18, 32, 0.85);
+  --c-card-glow: 0 0 16px 0 rgba(54, 224, 255, 0.3);
+  --c-primary: #36e0ff;
+  --c-accent: #a259ff;
+  --c-text: #eaf6fb;
+  --c-text-muted: #90a4b4;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  font-family: "Inter", "SF Pro Text", Roboto, Helvetica, Arial, sans-serif;
+  color: var(--c-text);
+  /* Static gradient background */
+  background: linear-gradient(135deg, #0f1c3f 0%, #1a315f 50%, #243b55 100%);
+  min-height: 100vh;
+}
+
+/* 页面内最大宽度容器 */
+ .page {
+   width: 100vw;
+   min-height: 100vh;
+   padding: 0 24px;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: flex-start;
+ }
+
+/* ───────────────────────────
+   Futuristic Neon Card
+   ─────────────────────────── */
+ .card {
+   min-width: 320px;
+   max-width: none;
+   width: 100%;
+   margin-left: auto;
+   margin-right: auto;
+   background: var(--c-card);
+   border-radius: 18px;
+   padding: 32px 40px;
+   box-shadow: var(--c-card-glow);
+   border: 1px solid rgba(43, 188, 255, 0.2);
+   transition: box-shadow 220ms cubic-bezier(.32,1.27,.32,1), border-color 220ms cubic-bezier(.32,1.27,.32,1);
+   backdrop-filter: blur(6px);
+   margin-bottom: 24px;
+ }
+.card:hover {
+  /* 仅略微加重高光和边色，无动画放大 */
+  box-shadow: 0 0 28px 4px #36e0ff55, 0 0 56px 4px #7f68ff11;
+  border-color: #36e0ffbb;
+}
+
+/* ───────────────────────────
+   Headers & Titles
+   ─────────────────────────── */
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 18px 0;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+h1 {
+  font-size: 2.8rem;
+  letter-spacing: 2px;
+  color: var(--c-primary);
+  text-shadow: 0 2px 16px #36e0ff55;
+}
+h2 {
+  font-size: 1.9rem;
+  color: var(--c-accent);
+  text-shadow: 0 2px 12px #a259ff33;
+}
+h3 {
+  font-size: 1.25rem;
+  color: var(--c-primary);
+  letter-spacing: 1.2px;
+}
+
+/* ───────────────────────────
+   Info Rows (label / value)
+   ─────────────────────────── */
+.info-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  line-height: 1.7;
+}
+.info-row label {
+  width: 170px;
+  font-weight: 500;
+  color: var(--c-text-muted);
+  text-align: right;
+  letter-spacing: 0.3px;
+  font-size: 1.04rem;
+}
+.info-row span {
+  flex: 1;
+  word-break: break-all;
+  font-size: 1.09rem;
+}
+
+/* ───────────────────────────
+   Responsive Grid Layout
+   ─────────────────────────── */
+.app-grid {
+  display: grid;
+  justify-content: center;  /* center entire grid horizontally */
+  align-items: start;       /* align cards to top */
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 40px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 32px 48px;
+}
+
+/* Limit the first column (DAO 状态) width */
+.app-grid > :first-child {
+  max-width: 360px;
+}
+
+/* ───────────────────────────
+   Wallet Adapter button tweak
+   ─────────────────────────── */
+.wallet-button {
+  background: linear-gradient(90deg, #36e0ff 10%, #a259ff 90%) !important;
+  border: none !important;
+  color: #15182b !important;
+  box-shadow: 0 2px 24px #36e0ff33 !important;
+  font-weight: 700;
+}
+.wallet-button:hover {
+  background: linear-gradient(90deg, #a259ff 10%, #36e0ff 90%) !important;
+  color: #fff !important;
+}
+
+/* ───────────────────────────
+   Utility classes
+   ─────────────────────────── */
+.text-center {
+  text-align: center;
+}
+.mt-24 {
+  margin-top: 28px;
+}
+
+/* 公钥缩略美化 + 悬停全显 */
+.pubkey-string {
+  font-size: 0.98rem;
+  color: #7fd3fa;
+  letter-spacing: 0.5px;
+  font-family: "Fira Mono", "JetBrains Mono", monospace;
+  cursor: pointer;
+  user-select: text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+  display: inline-block;
+  vertical-align: bottom;
+  transition: color 0.18s;
+  position: relative;
+}
+.pubkey-string:hover,
+.pubkey-string:focus {
+  color: #fff;
+  z-index: 1;
+}
+.pubkey-string .full-address {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 120%;
+  white-space: normal;
+  background: #202940ee;
+  color: #74fff3;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.99rem;
+  box-shadow: 0 2px 16px #43f3ff33;
+  min-width: 340px;
+}
+.pubkey-string:hover .full-address,
+.pubkey-string:focus .full-address {
+  display: block;
+}
+
+
+@keyframes bgPulse {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%;
+  }
+}
+
+
+html::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 40px 40px, 80px 80px;
+}
+/* ───────────────────────────
+   Proposal Manager Module
+   ─────────────────────────── */
+.proposal-manager {
+  max-width: 400px;   /* 原 460px */
+  margin: 0 auto 40px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: var(--c-card);
+  box-shadow: var(--c-card-glow);
+  border: 1px solid rgba(43, 188, 255, 0.2);
+}
+
+.proposal-manager .pm-title {
+  font-size: 1.9rem;
+  color: var(--c-accent);
+  text-align: center;
+  margin: 0;
+}
+
+.proposal-manager .pm-body {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .proposal-manager .pm-body {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+/* ───────────────────────────
+   Signature Panel (Right-side Module)
+   ─────────────────────────── */
+.signature-panel {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
+  word-break: break-all;   /* force long pubkeys to wrap */
+  overflow-wrap: anywhere;
+}

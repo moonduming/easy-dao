@@ -2,14 +2,7 @@
 use anchor_lang::prelude::*;
 
 use crate::{
-    error::GovernanceError, 
-    Governance, 
-    GovernanceAccountType, 
-    Proposal, 
-    RequiredSignatory, 
-    SignatoryRecord, 
-    TokenOwnerRecord, 
-    Realm
+    error::GovernanceError, Governance, GovernanceAccountType, Proposal, ProposalState, Realm, RequiredSignatory, SignatoryRecord, TokenOwnerRecord
 };
 
 
@@ -71,6 +64,13 @@ pub struct AddSignatory<'info> {
 
 impl<'info> AddSignatory<'info> {
     pub fn process(&mut self) -> Result<()> {
+        // TODO: 如果在添加签名时，以前添加的签名人进行了签署
+        // 会是状态变为签名中，会导致添加失败
+        require!(
+            self.proposal.state == ProposalState::Draft,
+            GovernanceError::InvalidProposalState
+        );
+
         if self.proposal.signatories_count < self.governance.required_signatories_count {
             let _required_info = self.required_signatory
                 .as_deref()
