@@ -35,7 +35,7 @@ export const REALM_PDA = new web3.PublicKey(
 );
 
 export const REALM_MINT = new web3.PublicKey(
-    "3MKwAL3N3SmaFvKNaCirt8RLm9nVt5wfRwydGSiSdp6D"
+    "3Wku9XAZhR2jx3PzG8cunGXxdkMHTzPfhaFxaaedoEBB"
 );
 
 // --- 社区目标账户 PDA（固定地址）---

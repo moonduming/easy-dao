@@ -243,7 +243,7 @@ describe("easy-dao", () => {
     }
   });
 
-  it("deposit governing tokens", async () => {
+  it.only("deposit governing tokens", async () => {
     for (const user of users) {
       const tx = await program.methods.depositGoverningTokens(
         new anchor.BN(20)
@@ -731,7 +731,7 @@ describe("easy-dao", () => {
 
   })
 
-  it.only("cast vote", async () => {
+  it("cast vote", async () => {
     const [governancePda] = PublicKey.findProgramAddressSync(
       [realmPda.toBuffer(), Buffer.from("governance")],
       program.programId
