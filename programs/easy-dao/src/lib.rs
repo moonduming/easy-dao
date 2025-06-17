@@ -31,7 +31,7 @@ pub mod easy_dao {
     }
 
     /// 创建治理代币拥有者账户
-    pub fn creat_token_owner_record(
+    pub fn create_token_owner_record(
         ctx: Context<CreateTokenOwnerRecord>
     ) -> Result<()> {
         ctx.accounts.process()
