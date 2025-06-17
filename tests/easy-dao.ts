@@ -231,7 +231,7 @@ describe("easy-dao", () => {
 
   it("create token owner record for all users", async () => {
     for (const user of users) {
-      const tx = await program.methods.creatTokenOwnerRecord()
+      const tx = await program.methods.createTokenOwnerRecord()
         .accounts({
           user: user.publicKey,
           mint: mint,
@@ -243,7 +243,7 @@ describe("easy-dao", () => {
     }
   });
 
-  it.only("deposit governing tokens", async () => {
+  it("deposit governing tokens", async () => {
     for (const user of users) {
       const tx = await program.methods.depositGoverningTokens(
         new anchor.BN(20)
