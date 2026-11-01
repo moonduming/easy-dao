@@ -1,54 +1,47 @@
-# React + TypeScript + Vite
+# easy-dao UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+基于 React、TypeScript 和 Vite 的 DAO 交互前端，用于查看 Realm 与 Governance 状态、管理提案，以及进行签名和投票。合约与治理流程说明见[项目 README](../README.md)。
 
-Currently, two official plugins are available:
+## 运行准备
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 安装 Node.js 和 npm，并在仓库根目录安装项目依赖。
+- 在仓库根目录运行 `anchor build`，生成前端引用的 `target/idl/easy_dao.json` 和 `target/types/easy_dao.ts`。
+- 在目标网络部署合约并初始化 Realm、社区代币及治理账户。
+- 准备目标网络上的钱包和测试余额；前端配置了 Solflare 钱包适配器。
 
-## Expanding the ESLint configuration
+## 网络与账户配置
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+启动前检查以下文件：
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+| 文件 | 配置 |
+| --- | --- |
+| [src/App.tsx](src/App.tsx) | 钱包连接的 RPC endpoint 和钱包适配器网络，当前使用 Devnet |
+| [src/anchor.ts](src/anchor.ts) | 合约 provider 的 `NETWORK`、`PROGRAM_ID`、`REALM_PDA` 和 `REALM_MINT` |
+
+`src/anchor.ts` 中的 `NETWORK` 当前为 `http://127.0.0.1:8899`。需将两处 RPC 配置及钱包网络统一到同一目标网络；连接 Devnet 时将 `NETWORK` 改为对应的 Devnet RPC，使用本地验证器时则调整 `src/App.tsx` 的连接配置。
+
+将 Realm 和社区代币地址替换为目标网络上的实际地址。`GOVERNANCE_PDA` 由 `REALM_PDA` 和 `PROGRAM_ID` 派生，需要对应的治理账户已初始化。确认 Program ID 与构建生成的 IDL 及部署一致。
+
+## 本地启动
+
+在仓库根目录运行：
+
+```bash
+cd easy-dao-ui
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+打开 Vite 输出的本地地址并连接钱包。
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 开发命令
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+在本目录运行：
+
+```bash
+npm run build
+npm run lint
+npm run preview
 ```
+
+`preview` 用于预览构建产物，需先完成 `build`。提案、签名和投票操作受链上账户状态、治理规则及钱包权限约束。
